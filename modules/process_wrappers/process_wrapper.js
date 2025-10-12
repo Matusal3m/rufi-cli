@@ -1,0 +1,39 @@
+import { spawn, spawnSync } from "node:child_process";
+import { RufiLogger } from "../../utils/rufi_logger.js";
+
+export class ProcessWrapper {
+    constructor(command) {
+        this.command = command;
+    }
+
+    spawn(command, params, verbose = false) {
+        return spawn(command, params, {
+            stdio: verbose ? "inherit" : "pipe",
+        });
+    }
+
+    spawnShell(command, verbose = false) {
+        return spawn(command, {
+            stdio: verbose ? "inherit" : "pipe",
+        });
+    }
+
+    ensureExistence(versionCommand = "--version") {
+        const process = spawnSync(this.command, [versionCommand]);
+        if (process.error) throw process.error;
+    }
+
+    promisify(process, successMessage, errorMessage) {
+        return new Promise((resolve, reject) => {
+            process.on("close", (code) => {
+                if (code !== 0 && errorMessage) {
+                    if (errorMessage) RufiLogger.error(errorMessage);
+                    reject();
+                }
+
+                if (successMessage) RufiLogger.success(successMessage);
+                resolve();
+            });
+        });
+    }
+}
