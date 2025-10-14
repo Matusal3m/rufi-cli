@@ -1,25 +1,15 @@
 {
     "name": "rufi-cli",
+    "module": "src/index.ts",
     "type": "module",
-    "version": "1.0.0",
-    "main": "./index.js",
-    "bin": {
-        "rufi": "./index.js"
-    },
-    "scripts": {
-        "rufi": "node --experimental-sqlite --env-file=.env cli/index.js"
-    },
-    "keywords": [
-        "cli",
-        "nodejs",
-        "microservices",
-        "migrations"
-    ],
-    "author": "Matusal3m",
-    "license": "ISC",
-    "description": "A CLI to handle services separeted projects.",
-    "dependencies": {
+    "devDependencies": {
+        "@types/bun": "latest",
         "clipanion": "^4.0.0-rc.4",
         "pg": "^8.16.3"
+    },
+    "peerDependencies": {
+        "@types/node": "^24.7.2",
+        "@types/pg": "^8.15.5",
+        "typescript": "^5"
     }
 }
