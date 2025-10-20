@@ -1,8 +1,7 @@
 import { Command, Option, UsageError } from 'clipanion';
-import { Services, Git } from '@/modules';
-import { RufiLogger } from '@/utils';
+import { Git } from '@/modules';
 
-export class ServiceClone extends Command {
+export class ServiceClone extends Command<RufiToolsContext> {
     static paths = [['service:clone']];
     static usage = Command.Usage({
         category: 'Service',
@@ -13,9 +12,12 @@ export class ServiceClone extends Command {
     all = Option.Boolean('--all');
     verbose = Option.Boolean('--verbose');
 
+    private readonly services = this.context.services;
+    private readonly logger = this.context.logger;
+
     async execute() {
-        const token = process.env['GIT_TOKEN'];
-        const username = process.env['GIT_USERNAME'];
+        const token = this.context.config.git.token;
+        const username = this.context.config.git.username;
         const git = new Git(username, token);
 
         if (!this.all && !this.service) {
@@ -29,17 +31,17 @@ export class ServiceClone extends Command {
         }
 
         if (this.all) {
-            await this.#cloneAll(git);
+            await this.cloneAll(git);
             return;
         }
 
-        await this.#cloneOne(git, this.service!);
+        await this.cloneOne(git, this.service!);
     }
 
-    async #cloneOne(git: Git, serviceName: string) {
-        const service = await Services.config(serviceName);
+    private async cloneOne(git: Git, serviceName: string) {
+        const service = await this.services.getConfig(serviceName);
         if (!service || !service.enable) {
-            RufiLogger.warn('The service is invalid or is not enabled');
+            this.logger.warn('The service is invalid or is not enabled');
             return;
         }
 
@@ -51,8 +53,8 @@ export class ServiceClone extends Command {
         });
     }
 
-    async #cloneAll(git: Git) {
-        const servicesConfigs = await Services.configs();
+    private async cloneAll(git: Git) {
+        const servicesConfigs = await this.services.configs();
         const servicesEnabled = servicesConfigs.filter(
             service => service.enable
         );

@@ -1,15 +1,23 @@
 {
     "name": "rufi-cli",
-    "module": "src/index.ts",
-    "type": "module",
+    "main": "index.js",
     "devDependencies": {
         "@types/bun": "latest",
+        "@types/node": "^24.8.1",
         "clipanion": "^4.0.0-rc.4",
-        "pg": "^8.16.3"
+        "pg": "^8.16.3",
+        "tsc-alias": "^1.8.16"
     },
     "peerDependencies": {
         "@types/node": "^24.7.2",
         "@types/pg": "^8.15.5",
         "typescript": "^5"
-    }
+    },
+    "bin": {
+        "rufi": "./cli.js"
+    },
+    "scripts": {
+        "build": "tsc && tsc-alias -f"
+    },
+    "type": "module"
 }

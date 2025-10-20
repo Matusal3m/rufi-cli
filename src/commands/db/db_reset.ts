@@ -1,8 +1,6 @@
 import { Command } from 'clipanion';
-import { RufiLogger } from '@/utils';
-import { RufiManagementRegistry, RufiPersistence } from '@/persistence';
 
-export class DbReset extends Command {
+export class DbReset extends Command<RufiToolsContext> {
     static paths = [['db:reset']];
     static usage = Command.Usage({
         category: 'Database',
@@ -21,48 +19,40 @@ export class DbReset extends Command {
         examples: [['Reset development database', 'rufi db:reset']],
     });
 
+    private readonly migrations = this.context.migrations;
+    private readonly services = this.context.services;
+    private readonly logger = this.context.logger;
+
     async execute() {
-        if (process.env['CLI_ENV'] !== 'development') {
-            RufiLogger.error(
-                'Command allowed only in development environment.'
-            );
+        this.logger.info('Dropping all PostgreSQL schemas...');
+
+        const services = await this.services.local();
+
+        if (services.length === 0) {
+            this.logger.warn('No schemas registered — nothing to drop.');
+            return;
         }
 
-        RufiLogger.info('Dropping all PostgreSQL schemas...');
-
-        const schemas = RufiManagementRegistry.listRegisteredServices();
-
-        if (!schemas || schemas.length === 0) {
-            RufiLogger.warn('No schemas registered — nothing to drop.');
-        }
-
-        for (let schema of schemas) {
-            schema = schema === process.env['CORE_SERVICE'] ? 'public' : schema;
-            const sql = `DROP SCHEMA IF EXISTS "${schema}" CASCADE;`;
-
-            RufiLogger.info(`Dropping schema: ${schema}`);
-            try {
-                await RufiPersistence.query(sql);
-                RufiLogger.success(`Schema "${schema}" dropped successfully.`);
-            } catch (err: any) {
-                RufiLogger.error(
-                    `Failed to drop schema "${schema}": ${err.message || err}`
-                );
-            }
+        const dropSchemasPromises = [];
+        for (const service of services) {
+            dropSchemasPromises.push(this.services.dropServiceSchema(service));
         }
 
         try {
-            RufiManagementRegistry.clear();
-            RufiLogger.success('Registry of services cleared successfully.');
+            await Promise.all(dropSchemasPromises);
         } catch (err: any) {
-            RufiLogger.warn(
-                `Could not clear service registry: ${err.message || err}`
-            );
+            this.logger.warn('Something whent wrong while dropping schemas.');
+            throw err;
         }
 
-        RufiLogger.divider();
-        RufiLogger.success('All schemas dropped successfully!');
-        RufiLogger.info('Development environment has been reset.');
-        RufiLogger.divider();
+        try {
+            await this.migrations.clear();
+            this.logger.success('Registry of services cleared successfully.');
+        } catch (err: any) {
+            this.logger.warn(`Could not clear services migrations registry.`);
+            throw err;
+        }
+
+        this.logger.success('All schemas dropped successfully!');
     }
 }

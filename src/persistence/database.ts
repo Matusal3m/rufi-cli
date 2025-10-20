@@ -1,13 +1,13 @@
+import { PGConfig } from '@/modules';
 import { RufiLogger } from '@/utils';
 import { Pool, type PoolClient } from 'pg';
 
 type TransactionCallback = (client: PoolClient) => Promise<void>;
 
-export class Database {
-    private pool: Pool | null;
+export abstract class Database {
+    private pool: Pool | null = null;
 
-    constructor() {
-        const config = process.env;
+    constructor(config: PGConfig) {
         this.pool = new Pool({
             user: config.user,
             host: config.host,

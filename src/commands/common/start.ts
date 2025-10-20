@@ -1,9 +1,8 @@
+import { color } from '@/utils';
 import { Command } from 'clipanion';
 import { PassThrough } from 'stream';
-import { RufiLogger, color } from '@/utils';
-import { Services } from '@/modules';
 
-export class Start extends Command {
+export class Start extends Command<RufiToolsContext> {
     static paths = [['start']];
 
     static usage = Command.Usage({
@@ -12,19 +11,22 @@ export class Start extends Command {
             'Initializes the environment by cloning all services and applying database migrations.',
     });
 
+    private readonly services = this.context.services;
+    private readonly logger = this.context.logger;
+
     async execute() {
-        const services = await Services.local();
+        const services = await this.services.local();
         const hasServices = services.length;
 
         if (hasServices) {
-            RufiLogger.error(
+            this.logger.error(
                 `The ${color.gray(
                     'start'
                 )} command can only be executed when there are no initialized services.`
             );
         }
 
-        RufiLogger.info('Starting RUFI environment...');
+        this.logger.info('Starting RUFI environment...');
 
         await this.cli.run(['service:clone', '--all'], {
             stdout: new PassThrough(),
@@ -34,6 +36,6 @@ export class Start extends Command {
             stdout: new PassThrough(),
         });
 
-        RufiLogger.success('✅ Environment successfully initialized!');
+        this.logger.success('✅ Environment successfully initialized!');
     }
 }

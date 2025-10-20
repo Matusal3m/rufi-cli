@@ -1,8 +1,7 @@
 import { Command } from 'clipanion';
-import { RufiManagementRegistry, RufiPersistence } from '@/persistence/';
-import { RufiLogger, color } from '@/utils';
+import { color } from '@/utils';
 
-export class DbTables extends Command {
+export class DbTables extends Command<RufiToolsContext> {
     static paths = [['db:tables']];
     static usage = Command.Usage({
         category: 'Database',
@@ -23,46 +22,49 @@ export class DbTables extends Command {
         ],
     });
 
+    private readonly services = this.context.services;
+    private readonly logger = this.context.logger;
+
     async execute() {
-        const schemas = RufiManagementRegistry.listRegisteredServices();
+        const services = await this.services.local();
 
-        RufiLogger.info('Fetching tables for each schema...\n');
+        this.logger.info('Fetching tables for each schema...\n');
 
-        if (!schemas || !schemas.length) {
-            RufiLogger.info('No schemas registered.');
+        if (!services.length) {
+            this.logger.info('No schemas registered.');
         }
 
-        for (let schema of schemas) {
-            const core = process.env['CORE_SERVICE'];
-            const isCore = schema === core;
+        for (const service of services) {
             try {
-                schema = isCore ? 'public' : schema;
-                const result = await RufiPersistence.query(
-                    `SELECT * from pg_tables WHERE schemaname = $1`,
-                    [schema]
-                );
+                const tables = await this.services.tablesFrom(service);
 
-                const tables = Array.isArray(result) ? result : [];
+                this.logServiceSection(service, tables);
 
-                if (tables.length === 0) {
-                    RufiLogger.bullet('no tables found');
-                    continue;
-                }
-
-                RufiLogger.info(
-                    `Schema ${color.green(schema)}` +
-                        (isCore ? color.gray(` (${core})`) : '')
-                );
-                for (const { tablename } of tables) {
-                    RufiLogger.bullet(tablename);
-                }
-
-                RufiLogger.divider();
+                this.logger.divider();
             } catch (err: any) {
-                RufiLogger.error(
-                    `Error fetching tables for schema "${schema}": ${err.message}`
+                this.logger.error(
+                    `Error fetching tables for service ${service}: ${err.message}`
                 );
             }
+        }
+    }
+
+    private logServiceSection(service: string, tables: string[]) {
+        const schema = this.services.getSchemaName(service);
+        const isCore = this.services.isCore(service);
+
+        this.logger.section(
+            `Schema ${color.green(schema)}` +
+                (isCore ? color.gray(` (core)`) : '')
+        );
+
+        if (tables.length === 0) {
+            this.logger.bullet('No tables found');
+            return;
+        }
+
+        for (const table of tables) {
+            this.logger.bullet(table);
         }
     }
 }

@@ -1,9 +1,11 @@
 import { Command, Option, UsageError } from 'clipanion';
-import { RufiLogger, color } from '@/utils';
-import * as path from 'path';
-import * as fs from 'fs';
+import { Format, color } from '@/utils';
+import path from 'path';
+import fs from 'fs';
 
-export class MakeMigration extends Command {
+type MigrationType = 'create' | 'drop' | 'alter';
+
+export class MakeMigration extends Command<RufiToolsContext> {
     static paths = [['make:migration']];
     static usage = Command.Usage({
         category: 'Make',
@@ -22,32 +24,36 @@ export class MakeMigration extends Command {
         ],
     });
 
-    type: 'create' | 'drop' | 'alter' = Option.String('migration-type', {
+    migrationType: MigrationType = Option.String({
+        name: 'migrationType #0',
         required: true,
-        description: 'Type of migration: create, drop, or alter',
     });
-    table = Option.String({ required: true });
-    service = Option.String({ required: true });
+    table = Option.String({ name: 'table #1', required: true });
+    service = Option.String({ name: 'service #2', required: true });
+
+    private readonly logger = this.context.logger;
 
     async execute() {
-        RufiLogger.section('Creating Migration');
+        this.logger.section('Creating Migration');
 
         const migrationsPath = path.join(
             process.cwd(),
             'services',
             this.service,
-            'migrations',
+            'migrations'
         );
 
         if (!fs.existsSync(migrationsPath)) {
             throw new UsageError(
                 `Could not found path ${color.yellow(
-                    migrationsPath.replace(process.cwd() + '/', ''),
-                )}`,
+                    migrationsPath.replace(process.cwd() + '/', '')
+                )}`
             );
         }
 
-        const migration = `${new Date().getTime()}_${this.type}_${this.table}`;
+        const migration = `${new Date().getTime()}_${this.migrationType}_${
+            this.table
+        }`;
 
         const schema =
             this.service === process.env['CORE_SERVICE']
@@ -59,48 +65,45 @@ export class MakeMigration extends Command {
 
         fs.writeFileSync(filePath, template);
 
-        RufiLogger.success(`Migration created: ${migration}.sql`);
-        RufiLogger.bullet(
-            `Location: ${filePath.replace(process.cwd() + '/', '')}`,
+        this.logger.success(`Migration created: ${migration}.sql`);
+
+        this.logger.bullet(
+            `Location: ${filePath.replace(process.cwd() + '/', '')}`
         );
     }
 
     private template(migration: string, schema: string) {
         const templates = {
-            create: `-- Migration: ${migration}"
+            create: `
+                -- Migration: ${migration}"
+                CREATE TABLE IF NOT EXISTS ${schema}.${this.table} (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                );`,
 
-CREATE TABLE IF NOT EXISTS ${schema}.${this.table} (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);`,
+            drop: `
+                -- Migration: ${migration}
+                DROP TABLE IF EXISTS ${schema}.${this.table};`,
 
-            drop: `-- Migration: ${migration}
-
-DROP TABLE IF EXISTS ${schema}.${this.table};`,
-
-            alter: `-- Migration: ${this.type}
-
-ALTER TABLE IF NOT EXISTS ${schema}.${this.table} 
-ADD COLUMN new_column VARCHAR(255),
-DROP COLUMN old_column,
-ALTER COLUMN existing_column TYPE TEXT;`,
+            alter: `
+                -- Migration: ${this.migrationType}
+                ALTER TABLE IF NOT EXISTS ${schema}.${this.table} 
+                ADD COLUMN new_column VARCHAR(255),
+                DROP COLUMN old_column,
+                ALTER COLUMN existing_column TYPE TEXT;`,
         };
 
-        if (!(this.type in templates)) {
+        if (!(this.migrationType in templates)) {
             throw new UsageError(
                 `Unknown migration ${color.red(
-                    this.type,
+                    this.migrationType
                 )}.\nAvailable types: ${color.blue('create')}, ${color.blue(
-                    'drop',
-                )} and ${color.blue('alter')}`,
+                    'drop'
+                )} and ${color.blue('alter')}`
             );
         }
 
-        return templates[this.type]
-            .split('\n')
-            .map(s => s.trim())
-            .filter(Boolean)
-            .join('\n');
+        return Format.template.withIndent(templates[this.migrationType]);
     }
 }

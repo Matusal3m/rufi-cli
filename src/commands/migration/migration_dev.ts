@@ -1,11 +1,7 @@
 import { Command, Option } from 'clipanion';
-import { RufiLogger, color } from '@/utils';
-import { RufiPersistence, RufiManagementRegistry } from '@/persistence';
-import { Migration, Services } from '@/modules';
-import * as path from 'path';
-import * as fs from 'fs/promises';
+import { color, Format } from '@/utils';
 
-export class MigrationDev extends Command {
+export class MigrationDev extends Command<RufiToolsContext> {
     static paths = [['migration:dev']];
 
     static usage = Command.Usage({
@@ -31,149 +27,72 @@ export class MigrationDev extends Command {
         description: 'Force migration even on core service',
     });
 
+    private readonly services = this.context.services;
+    private readonly logger = this.context.logger;
+    private readonly migrations = this.context.migrations;
+
     async execute() {
-        const isCore = process.env['CORE_SERVICE'] === this.service;
-        const schema = isCore ? 'public' : this.service;
+        const isCore = this.services.isCore(this.service);
 
         if (isCore && !this.force) {
             return this.warnCoreProtection();
         }
 
-        RufiLogger.section(
+        this.logger.section(
             `Starting development migrations for service: ${color.cyan(
                 this.service
             )}`
         );
 
-        await this.dropSchema(schema);
-        RufiPersistence.ensureSchemaExistence(schema);
+        const schema = this.services.getSchemaName(this.service);
 
-        const serviceConfig = await this.ensureServiceConfig();
-        const migrationDir = Migration.defaultMigrationDir(this.service);
+        try {
+            await this.services.dropServiceSchema(this.service);
+            await this.services.ensureSchemaExistence(schema);
 
-        const parser = Migration.getParser(serviceConfig!);
-        const migrations = await parser.execute(migrationDir);
-
-        if (migrations.length === 0) {
-            RufiLogger.warn(
-                'No migration files found. Nothing will be applied.'
+            const serviceConfig = await this.services.getConfig(this.service);
+            const migrationDir = await this.migrations.defaultMigrationDir(
+                this.service
             );
-            return;
+
+            const parser = this.migrations.getParser(serviceConfig!);
+            const migrations = await parser.execute(migrationDir);
+
+            if (migrations.length === 0) {
+                this.logger.warn(
+                    'No migration files found. Nothing will be applied.'
+                );
+                return;
+            }
+
+            await this.migrations.applyMigrations(
+                migrations,
+                schema,
+                migrationDir
+            );
+        } catch (err: any) {
+            this.logger.error('Error while running dev migration');
+            this.logger.error(err.message || err);
+            throw err;
         }
 
-        await this.applyMigrations(migrations, schema, migrationDir);
-
-        RufiLogger.section(
-            `Done. Reapplied ${migrations.length} migration(s) for ${color.cyan(
-                this.service
-            )}.`
+        this.logger.section(
+            `Done. Reapplied migration(s) for ${color.cyan(this.service)}.`
         );
     }
 
     private warnCoreProtection() {
-        RufiLogger.warn(`${color.yellow(
-            `Migration blocked for core service: "${this.service}"`
-        )}
-This schema may contain tables referenced by other services,
-and running migrations directly could cause data loss or integrity issues.
+        const warning = Format.template.flat(
+            `${color.yellow(
+                `Migration blocked for core service: "${this.service}"`
+            )}
+            This schema may contain tables referenced by other services,
+            and running migrations directly could cause data loss or integrity issues.
 
-If you really need to proceed, use:
-${color.gray(`rufi migration:dev ${this.service} --force`)}
-        `);
-    }
+            If you really need to proceed, use:
+            ${color.gray(`rufi migration:dev ${this.service} --force`)}`
+        );
 
-    private ensureServiceConfig() {
-        const serviceConfig = Services.config(this.service);
-        if (!serviceConfig) {
-            throw new Error(
-                `Could not find configuration for service "${this.service}".`
-            );
-        }
-        return serviceConfig;
-    }
-
-    private async dropSchema(schema: string) {
-        const registeredMigrations =
-            RufiManagementRegistry.listServiceMigrations(this.service);
-
-        if (!registeredMigrations || registeredMigrations.length === 0) {
-            RufiLogger.warn('No migrations registered for this service.');
-            RufiLogger.info(
-                `Run ${color.gray(
-                    `rufi migration:up ${this.service}`
-                )} instead if you only need to apply.`
-            );
-        }
-
-        RufiLogger.info(`Dropping schema ${color.bold(schema)}...`);
-
-        try {
-            await RufiPersistence.query(
-                `DROP SCHEMA IF EXISTS "${schema}" CASCADE;`
-            );
-            RufiManagementRegistry.clearService(this.service);
-            RufiLogger.success(`Schema "${schema}" dropped successfully.`);
-        } catch (err: any) {
-            RufiLogger.error(
-                `Error while dropping schema "${schema}": ${err.message || err}`
-            );
-            throw err;
-        }
-    }
-
-    private async applyMigrations(
-        migrations: string[],
-        schema: string,
-        dir: string
-    ) {
-        RufiLogger.section('Reapplying migrations...');
-
-        let appliedCount = 0;
-        for (const migration of migrations) {
-            const migrationPath = path.join(dir, migration);
-            const { isValid, message } = Migration.isValidMigration(
-                migrationPath,
-                migration
-            );
-
-            if (!isValid) {
-                RufiLogger.warn(
-                    `Skipping migration ${color.bold(migration)}: ${message}`
-                );
-                continue;
-            }
-
-            try {
-                const sql = await fs.readFile(migrationPath, 'utf8');
-                RufiLogger.info(
-                    `Applying ${color.cyan(migration)} to schema ${color.gray(
-                        schema
-                    )}...`
-                );
-
-                await this.runMigration(sql, schema);
-                Migration.register(migration, this.service);
-
-                RufiLogger.success(`Migration applied: ${migration}`);
-                appliedCount++;
-            } catch (err: any) {
-                RufiLogger.error(
-                    `Failed to apply ${migration}: ${err.message || err}`
-                );
-                RufiLogger.warn('Migration process stopped due to error.');
-                break;
-            }
-        }
-
-        if (appliedCount === 0) {
-            RufiLogger.info('No migrations were applied.');
-        }
-    }
-
-    private async runMigration(sql: string, schema: string) {
-        await RufiPersistence.transaction(async client => {
-            await client.query(`SET search_path TO ${schema}, public;`);
-            await client.query(sql);
-        });
+        this.logger.warn(warning);
     }
 }

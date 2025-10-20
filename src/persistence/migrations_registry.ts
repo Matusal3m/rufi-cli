@@ -7,16 +7,18 @@ interface ServiceMigration {
     service: string;
 }
 
-export class RufiMigrationRegistry extends Database {
+export class MigrationsRegistry extends Database {
     async init() {
         await this.query(`CREATE SCHEMA IF NOT EXISTS rufi`);
         await this.query(`
-            CREATE TABLE IF NOT EXISTS rufi.rufi_migrations (
+            SET search_path TO rufi, public;
+            
+            CREATE TABLE IF NOT EXISTS rufi_migrations (
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(255) NOT NULL UNIQUE,
                 applied_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
                 service VARCHAR(255) NOT NULL
-            )
+            );
         `);
     }
 
@@ -30,12 +32,14 @@ export class RufiMigrationRegistry extends Database {
             name,
             service,
         ]);
+        if (!migration)
+            throw new Error(`Something whent wrong adding migration ${name}`);
         return this.normalize(migration);
     }
 
     async allMigrations() {
         const rows = await this.query<ServiceMigration>(`
-            SELECT name, applied_at, service
+            SELECT *
             FROM rufi.rufi_migrations
             ORDER BY applied_at ASC
         `);
@@ -44,16 +48,16 @@ export class RufiMigrationRegistry extends Database {
 
     async migrationsFromService(service: string) {
         const rows = await this.query<ServiceMigration>(
-            `SELECT name, applied_at, service
+            `SELECT *
              FROM rufi.rufi_migrations
              WHERE service = $1
              ORDER BY applied_at ASC`,
-            [service],
+            [service]
         );
         return rows.map(this.normalize);
     }
 
-    async listRegisteredServices() {
+    async getRegisteredMigrations() {
         const rows = await this.query<{ service: string }>(`
             SELECT DISTINCT service
             FROM rufi.rufi_migrations
@@ -62,36 +66,35 @@ export class RufiMigrationRegistry extends Database {
         return rows.map(r => r.service);
     }
 
-    async hasMigration(name: string) {
+    async checkMigrationExistence(name: string) {
         const [result] = await this.query<{ count: string }>(
             `SELECT COUNT(*) AS count
              FROM rufi.rufi_migrations
              WHERE name = $1`,
-            [name],
+            [name]
         );
         return result ? Number(result.count) > 0 : false;
     }
 
-    async getLast(service: string) {
+    async getLastByService(service: string) {
         const [last] = await this.query<ServiceMigration>(
             `SELECT * FROM rufi.rufi_migrations
              WHERE service = $1
              ORDER BY applied_at DESC
              LIMIT 1`,
-            [service],
+            [service]
         );
         return last ? this.normalize(last) : undefined;
     }
 
     async clear() {
-        await this.query(`CREATE SCHEMA IF NOT EXISTS rufi`);
-        await this.query(`DELETE FROM rufi.rufi_migrations`);
+        await this.query(`DROP SCHEMA IF EXISTS rufi`);
     }
 
     async clearService(service: string) {
         await this.query(
             `DELETE FROM rufi.rufi_migrations WHERE service = $1`,
-            [service],
+            [service]
         );
     }
 
@@ -99,4 +102,11 @@ export class RufiMigrationRegistry extends Database {
         ...m,
         applied_at: new Date(m.applied_at).toLocaleString(),
     });
+
+    async runMigration(sql: string, schema: string) {
+        await this.transaction(async client => {
+            await client.query(`SET search_path TO ${schema}, public;`);
+            await client.query(sql);
+        });
+    }
 }

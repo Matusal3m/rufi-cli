@@ -1,5 +1,8 @@
+import { color, File, RufiLogger } from '@/utils';
+import { MigrationsRegistry, ServicesPersistence } from '@/persistence';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { RufiConfig } from '.';
 
 type ParseMethod = 'prisma';
 
@@ -7,36 +10,107 @@ export interface ServiceConfig {
     name: string;
     repository: string;
     enable: boolean;
-    parseMethod: ParseMethod | undefined;
-    directoryToParse: string | undefined;
+    parseMethod?: ParseMethod;
+    directoryToParse?: string;
 }
 
 export class Services {
-    static async config(serviceName: string) {
+    constructor(
+        private readonly servicesPersistence: ServicesPersistence,
+        private readonly migrationsRegistry: MigrationsRegistry,
+        private readonly config: RufiConfig
+    ) {}
+
+    async getConfig(serviceName: string): Promise<ServiceConfig> {
         const services = await this.configs();
-        return services.find(service => service.name === serviceName);
+        const serviceConfig = services.find(
+            service => service.name === serviceName
+        );
+        if (!serviceConfig) {
+            throw new Error(
+                `Could not find configuration for service "${serviceName}".`
+            );
+        }
+        return serviceConfig;
     }
 
-    static async configs(): Promise<ServiceConfig[]> {
+    async configs(): Promise<ServiceConfig[]> {
         const servicesConfigPath = path.join(
             process.cwd(),
             'services',
-            'services.config.json',
+            'services.config.js'
         );
 
-        const config = await fs.readFile(servicesConfigPath, {
-            encoding: 'utf8',
-        });
+        const hasServicesConfigPath = await File.exists(servicesConfigPath);
+        if (!hasServicesConfigPath) {
+            throw new Error(
+                `Could not find ${color.blue('services.config.js')}`
+            );
+        }
 
-        return JSON.parse(config);
+        const { default: config } = await import(servicesConfigPath);
+        return config;
     }
 
-    static async local() {
+    async local(): Promise<string[]> {
         const servicesPath = path.join(process.cwd(), 'services');
         const fileTypes = await fs.readdir(servicesPath, {
             withFileTypes: true,
         });
-        const files = fileTypes.filter(fileType => fileType.isFile());
-        return files.map(file => file.name);
+        const directories = fileTypes.filter(fileType =>
+            fileType.isDirectory()
+        );
+        return directories.map(dir => dir.name);
+    }
+
+    async ensureSchemaExistence(schema: string): Promise<void> {
+        try {
+            await this.servicesPersistence.createSchema(schema);
+        } catch (err: any) {
+            RufiLogger.error(
+                `Failed to ensure schema existence: ${err.message || err}`
+            );
+            throw err;
+        }
+    }
+
+    isCore(service: string): boolean {
+        return this.config.coreService === service;
+    }
+
+    getSchemaName(service: string): string {
+        if (!service) throw new Error('Service cannot be empty');
+        return this.isCore(service) ? 'public' : service;
+    }
+
+    async dropServiceSchema(service: string): Promise<void> {
+        const migrations = await this.migrationsRegistry.migrationsFromService(
+            service
+        );
+
+        if (!migrations || !migrations.length) {
+            RufiLogger.warn('No migrations registered for this service.');
+            return;
+        }
+
+        const schema = this.getSchemaName(service);
+        try {
+            await this.servicesPersistence.dropSchema(schema);
+        } catch (err: any) {
+            RufiLogger.error(
+                `Error while dropping schema "${schema}": ${err.message || err}`
+            );
+            throw err;
+        }
+    }
+
+    async tablesFrom(service: string): Promise<string[]> {
+        const schema = this.getSchemaName(service);
+
+        const rows = await this.servicesPersistence.query<{
+            tablename: string;
+        }>(`SELECT tablename FROM pg_tables WHERE schemaname = $1`, [schema]);
+
+        return rows.map(row => row.tablename);
     }
 }

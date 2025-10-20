@@ -1,2 +1,2 @@
-export * from './rufi_management_registry';
-export * from './rufi_persistence';
+export * from './migrations_registry';
+export * from './services_persitence';

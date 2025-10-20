@@ -31,7 +31,7 @@ export class RufiLogger {
 
     static divider() {
         console.info(
-            color.gray('--------------------------------------------------'),
+            color.gray('--------------------------------------------------')
         );
     }
 }
