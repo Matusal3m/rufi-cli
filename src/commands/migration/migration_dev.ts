@@ -48,12 +48,11 @@ export class MigrationDev extends Command<RufiToolsContext> {
             await Services.dropServiceSchema(this.service);
             await Services.ensureSchemaExistence(schema);
 
-            const serviceConfig = await Services.getConfig(this.service);
             const migrationDir = await Migrations.defaultMigrationDir(
                 this.service
             );
 
-            const parser = Migrations.getParser(serviceConfig!);
+            const parser = await Migrations.getParser(this.service);
             const migrations = await parser.execute(migrationDir);
 
             if (migrations.length === 0) {

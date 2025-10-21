@@ -57,12 +57,14 @@ export class Migrations {
         return { isValid: true, message: '' };
     }
 
-    getParser(serviceConfig: ServiceConfig): MigrationParser {
-        switch (serviceConfig.parseMethod) {
+    async getParser(serviceName: string): Promise<MigrationParser> {
+        const serviceConfig = await this.services.getConfig(serviceName);
+
+        switch (serviceConfig.migrations?.parse) {
             case 'prisma':
-                return new PrismaMigrationParser(serviceConfig);
+                return new PrismaMigrationParser(serviceName, serviceConfig);
             default:
-                return new DefaultMigrationParser(serviceConfig);
+                return new DefaultMigrationParser(serviceName, serviceConfig);
         }
     }
 

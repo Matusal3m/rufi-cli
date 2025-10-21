@@ -12,6 +12,10 @@ type PullOptions = {
     branch?: string;
 } & DefaultGitOptions;
 
+type DiffOptions = {
+    args: string[];
+} & Omit<DefaultGitOptions, 'name'>;
+
 export class Git extends ProcessWrapper {
     constructor(private username?: string, private token?: string) {
         super('git');
@@ -55,6 +59,33 @@ export class Git extends ProcessWrapper {
             verbose
         );
 
-        return this.promisify(git);
+        const successMessage = `Repository ${color.bold(
+            repository
+        )} pulled successfully${branch ? ` on branch ${branch}` : ''}.`;
+
+        let errorMessage = '';
+        git.stderr?.on('data', data => {
+            errorMessage += String(data);
+        });
+
+        return this.promisify(git, successMessage, errorMessage);
+    }
+
+    async diff(name: string, { verbose, rootDir, args }: DiffOptions) {
+        const gitDir = path.join(rootDir ?? process.cwd(), name || '');
+
+        const git = this.spawnShell(
+            `cd ${gitDir} && git diff ${args.join(' ')}`,
+            verbose
+        );
+
+        let data = '';
+        git.stdout?.on('data', chunk => {
+            data += String(chunk);
+        });
+
+        await this.promisify(git);
+
+        return data;
     }
 }

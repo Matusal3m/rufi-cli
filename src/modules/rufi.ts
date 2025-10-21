@@ -1,10 +1,9 @@
-import { Builtins, Cli, Command } from 'clipanion';
+import { Builtins, Cli } from 'clipanion';
 import { platform } from 'os';
 import { File, RufiLogger } from '@/utils';
+import { Init } from '../commands/common/init';
 import path from 'path';
 import fs from 'fs/promises';
-import { Init } from '../commands/common/init';
-import type { ServiceConfig } from '@/modules';
 
 export type PGConfig = {
     host: string;
@@ -26,7 +25,19 @@ export interface RufiConfig {
     coreService: string;
 }
 
-type Services = Record<string, Omit<ServiceConfig, 'name'>>;
+export type ServiceConfig = {
+    git: {
+        repository: string;
+        branch: string;
+    };
+    migrations?: {
+        parse?: 'prisma';
+        directory: string;
+    };
+    enable: boolean;
+};
+
+export type ServicesConfig = Record<string, ServiceConfig>;
 
 type RegisterFunction = (cli: Cli) => void;
 
@@ -40,13 +51,8 @@ export class Rufi {
 
     constructor(public readonly config: RufiConfig) {}
 
-    static services(services: Services): ServiceConfig[] {
-        const servicesConfig = [];
-        for (const service in services) {
-            const serviceConfig = { name: service, ...services[service] };
-            servicesConfig.push(serviceConfig);
-        }
-        return servicesConfig;
+    static services(services: ServicesConfig): ServicesConfig {
+        return services;
     }
 
     static async init() {

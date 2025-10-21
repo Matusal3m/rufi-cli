@@ -3,7 +3,10 @@ import type { ServiceConfig } from '@/modules';
 import * as fs from 'fs';
 
 export abstract class MigrationParser {
-    constructor(public serviceConfig: ServiceConfig) {}
+    constructor(
+        private readonly serviceName: string,
+        private readonly serviceConfig: ServiceConfig
+    ) {}
 
     abstract execute(destination: string): Promise<string[]>;
 
@@ -19,8 +22,8 @@ export abstract class MigrationParser {
         if (migrations.length) return;
 
         const migrationDir =
-            this.serviceConfig.directoryToParse ||
-            this.serviceConfig.name + '/migrations';
+            this.serviceConfig.migrations?.directory ||
+            this.serviceName + '/migrations';
 
         throw new Error(`Zero migrations found at ${color.bold(migrationDir)}`);
     }

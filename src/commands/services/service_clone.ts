@@ -46,9 +46,11 @@ export class ServiceClone extends Command<RufiToolsContext> {
             return;
         }
 
-        const { name, repository } = service;
+        const {
+            git: { repository },
+        } = service;
         await git.clone(repository, {
-            name,
+            name: serviceName,
             verbose: this.verbose,
             rootDir: process.cwd() + '/services',
         });
@@ -58,14 +60,16 @@ export class ServiceClone extends Command<RufiToolsContext> {
         const { Services } = this.context;
 
         const servicesConfigs = await Services.configs();
-        const servicesEnabled = servicesConfigs.filter(
-            service => service.enable
-        );
 
         const promises = [];
-        for (const { name, repository } of servicesEnabled) {
+        for (const serviceName in servicesConfigs) {
+            const { repository } = servicesConfigs[serviceName].git;
+            const { enable } = servicesConfigs[serviceName];
+
+            if (!enable) continue;
+
             const promise = git.clone(repository, {
-                name,
+                name: serviceName,
                 verbose: this.verbose,
                 rootDir: process.cwd() + '/services',
             });

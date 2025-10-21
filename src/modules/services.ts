@@ -2,17 +2,7 @@ import { color, File, RufiLogger } from '@/utils';
 import { MigrationsRegistry, ServicesPersistence } from '@/persistence';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { RufiConfig } from '.';
-
-type ParseMethod = 'prisma';
-
-export interface ServiceConfig {
-    name: string;
-    repository: string;
-    enable: boolean;
-    parseMethod?: ParseMethod;
-    directoryToParse?: string;
-}
+import { RufiConfig, ServiceConfig, ServicesConfig } from '.';
 
 export class Services {
     constructor(
@@ -23,9 +13,7 @@ export class Services {
 
     async getConfig(serviceName: string): Promise<ServiceConfig> {
         const services = await this.configs();
-        const serviceConfig = services.find(
-            service => service.name === serviceName
-        );
+        const serviceConfig = services[serviceName];
         if (!serviceConfig) {
             throw new Error(
                 `Could not find configuration for service "${serviceName}".`
@@ -34,7 +22,7 @@ export class Services {
         return serviceConfig;
     }
 
-    async configs(): Promise<ServiceConfig[]> {
+    async configs(): Promise<ServicesConfig> {
         const servicesConfigPath = await File.hasJsOrTS(
             path.join(process.cwd(), 'services', 'services.config')
         );

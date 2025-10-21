@@ -13,6 +13,7 @@ export class ProcessWrapper {
     spawnShell(command: string, verbose = false) {
         return spawn(command, {
             stdio: verbose ? 'inherit' : 'pipe',
+            shell: true,
         });
     }
 

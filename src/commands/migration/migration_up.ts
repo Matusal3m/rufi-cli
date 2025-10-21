@@ -28,16 +28,15 @@ export class MigrationUp extends Command<RufiToolsContext> {
     });
 
     async execute() {
-        const { Services, Migrations, Logger } = this.context;
+        const { Migrations, Logger } = this.context;
 
         Logger.section(`Starting migrations for service: ${this.service}`);
 
-        const serviceConfig = await Services.getConfig(this.service);
         const defaultMigrationDir = await Migrations.defaultMigrationDir(
             this.service
         );
 
-        const parser = Migrations.getParser(serviceConfig!);
+        const parser = await Migrations.getParser(this.service);
         const migrations = await parser.parseTo(defaultMigrationDir);
 
         if (migrations.length === 0) {
