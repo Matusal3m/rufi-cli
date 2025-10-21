@@ -108,4 +108,18 @@ export class Services {
 
         return rows.map(row => row.tablename);
     }
+
+    async allTables(): Promise<{ schema: string; table: string }[]> {
+        const rows = await this.servicesPersistence.query<{
+            schemaname: string;
+            tablename: string;
+        }>(
+            `SELECT schemaname, tablename FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema')`
+        );
+
+        return rows.map(row => ({
+            schema: row.schemaname,
+            table: row.tablename,
+        }));
+    }
 }
