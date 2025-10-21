@@ -8,7 +8,7 @@ export class MigrationUp extends Command<RufiToolsContext> {
         details: `
             Applies all pending SQL migrations for the specified service.
 
-            - this.migrations must be in the service's 'migrations' directory
+            - Migrations must be in the service's 'migrations' directory
             - Must have a .sql extension
             - Must start with a number for proper ordering
             
@@ -27,46 +27,44 @@ export class MigrationUp extends Command<RufiToolsContext> {
         name: 'service #0',
     });
 
-    private readonly services = this.context.services;
-    private readonly logger = this.context.logger;
-    private readonly migrations = this.context.migrations;
-
     async execute() {
-        this.logger.section(`Starting migrations for service: ${this.service}`);
+        const { Services, Migrations, Logger } = this.context;
 
-        const serviceConfig = await this.services.getConfig(this.service);
-        const defaultMigrationDir = await this.migrations.defaultMigrationDir(
+        Logger.section(`Starting migrations for service: ${this.service}`);
+
+        const serviceConfig = await Services.getConfig(this.service);
+        const defaultMigrationDir = await Migrations.defaultMigrationDir(
             this.service
         );
 
-        const parser = this.migrations.getParser(serviceConfig!);
+        const parser = Migrations.getParser(serviceConfig!);
         const migrations = await parser.parseTo(defaultMigrationDir);
 
         if (migrations.length === 0) {
-            this.logger.warn('No migration files found.');
+            Logger.warn('No migration files found.');
             return;
         }
 
         this.logMigrationsFound(migrations);
 
-        const appliedCount = await this.migrations.applyMigrations(
+        const appliedCount = await Migrations.applyMigrations(
             migrations,
             this.service,
             defaultMigrationDir
         );
 
         if (appliedCount > 0) {
-            this.logger.section(
-                `Done. Applied ${appliedCount} new migration(s).`
-            );
+            Logger.section(`Done. Applied ${appliedCount} new migration(s).`);
             return;
         }
-        this.logger.info('Zero migrations to run. Nothing was applied.');
+        Logger.info('Zero migrations to run. Nothing was applied.');
     }
 
     private logMigrationsFound(migrations: string[]) {
-        this.logger.info(`Found ${migrations.length} migration(s):`);
-        migrations.forEach(migration => this.logger.bullet(migration));
-        this.logger.section('Applying migrations...');
+        const { Logger } = this.context;
+
+        Logger.info(`Found ${migrations.length} migration(s):`);
+        migrations.forEach(migration => Logger.bullet(migration));
+        Logger.section('Applying migrations...');
     }
 }

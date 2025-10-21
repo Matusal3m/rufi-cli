@@ -35,17 +35,12 @@ export class Services {
     }
 
     async configs(): Promise<ServiceConfig[]> {
-        const servicesConfigPath = path.join(
-            process.cwd(),
-            'services',
-            'services.config.js'
+        const servicesConfigPath = await File.hasJsOrTS(
+            path.join(process.cwd(), 'services', 'services.config')
         );
 
-        const hasServicesConfigPath = await File.exists(servicesConfigPath);
-        if (!hasServicesConfigPath) {
-            throw new Error(
-                `Could not find ${color.blue('services.config.js')}`
-            );
+        if (!servicesConfigPath) {
+            throw new Error(`Could not find ${color.blue('services.config')}`);
         }
 
         const { default: config } = await import(servicesConfigPath);

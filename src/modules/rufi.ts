@@ -55,7 +55,9 @@ export class Rufi {
             binaryName: `rufi`,
         });
 
-        await cli.runExit(new Init());
+        cli.register(Init);
+        // @ts-ignore
+        await cli.runExit(process.argv.slice(2), { Logger: RufiLogger });
         process.exit(0);
     }
 
@@ -68,8 +70,9 @@ export class Rufi {
         const args = this.getArgs();
 
         this.cli.register(Builtins.HelpCommand);
-        console.log(this.dependencies);
+
         await this.cli.runExit(args, this.dependencies);
+
         process.exit(0);
     }
 
@@ -117,7 +120,7 @@ export class Rufi {
         const fileExists = await File.exists(commandRegister);
         if (!fileExists) return null;
 
-        const { default: register } = await import(commandRegister);
+        const { default: register } = await File.require<any>(commandRegister);
         return register;
     }
 

@@ -7,9 +7,9 @@ import { Migrations, Services } from './modules';
 import { MigrationsRegistry, ServicesPersistence } from './persistence';
 
 (async () => {
-    const rufiConfigPath = path.join(process.cwd(), 'rufi.config.js');
-
-    const existsRufiConfigFile = await File.exists(rufiConfigPath);
+    const rufiConfigPath = await File.hasJsOrTS(
+        path.join(process.cwd(), 'rufi.config')
+    );
 
     const command = process.argv[2];
 
@@ -18,14 +18,14 @@ import { MigrationsRegistry, ServicesPersistence } from './persistence';
         process.exit(0);
     }
 
-    if (!existsRufiConfigFile) {
+    if (!rufiConfigPath) {
         RufiLogger.error('The Rufi config file was not found.');
         const initCommand = color.bold('rufi init');
         RufiLogger.info(`Run ${initCommand} to create a Rufi config file.`);
         process.exit(1);
     }
 
-    const { default: rufi }: { default: Rufi } = await import(rufiConfigPath);
+    const { default: rufi } = await File.require<Rufi>(rufiConfigPath);
 
     const servicesPersistence = new ServicesPersistence(rufi.config.postgres);
     const migrationsRegistry = new MigrationsRegistry(rufi.config.postgres);
@@ -40,9 +40,9 @@ import { MigrationsRegistry, ServicesPersistence } from './persistence';
     const migrations = new Migrations(migrationsRegistry, services);
 
     rufi.setDependencies({
-        services,
-        migrations,
-        logger: RufiLogger,
+        Services: services,
+        Migrations: migrations,
+        Logger: RufiLogger,
         config: rufi.config,
     });
 

@@ -19,40 +19,38 @@ export class DbReset extends Command<RufiToolsContext> {
         examples: [['Reset development database', 'rufi db:reset']],
     });
 
-    private readonly migrations = this.context.migrations;
-    private readonly services = this.context.services;
-    private readonly logger = this.context.logger;
-
     async execute() {
-        this.logger.info('Dropping all PostgreSQL schemas...');
+        const { Services, Migrations, Logger } = this.context;
 
-        const services = await this.services.local();
+        Logger.info('Dropping all PostgreSQL schemas...');
+
+        const services = await Services.local();
 
         if (services.length === 0) {
-            this.logger.warn('No schemas registered — nothing to drop.');
+            Logger.warn('No schemas registered — nothing to drop.');
             return;
         }
 
         const dropSchemasPromises = [];
         for (const service of services) {
-            dropSchemasPromises.push(this.services.dropServiceSchema(service));
+            dropSchemasPromises.push(Services.dropServiceSchema(service));
         }
 
         try {
             await Promise.all(dropSchemasPromises);
         } catch (err: any) {
-            this.logger.warn('Something whent wrong while dropping schemas.');
+            Logger.warn('Something whent wrong while dropping schemas.');
             throw err;
         }
 
         try {
-            await this.migrations.clear();
-            this.logger.success('Registry of services cleared successfully.');
+            await Migrations.clear();
+            Logger.success('Registry of services cleared successfully.');
         } catch (err: any) {
-            this.logger.warn(`Could not clear services migrations registry.`);
+            Logger.warn(`Could not clear services migrations registry.`);
             throw err;
         }
 
-        this.logger.success('All schemas dropped successfully!');
+        Logger.success('All schemas dropped successfully!');
     }
 }

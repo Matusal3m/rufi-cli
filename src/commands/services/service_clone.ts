@@ -9,15 +9,14 @@ export class ServiceClone extends Command<RufiToolsContext> {
     });
 
     service = Option.String({ required: false });
-    all = Option.Boolean('--all');
-    verbose = Option.Boolean('--verbose');
-
-    private readonly services = this.context.services;
-    private readonly logger = this.context.logger;
+    all = Option.Boolean('--all', false);
+    verbose = Option.Boolean('--verbose', false);
 
     async execute() {
-        const token = this.context.config.git.token;
-        const username = this.context.config.git.username;
+        const { config } = this.context;
+
+        const token = config.git.token;
+        const username = config.git.username;
         const git = new Git(username, token);
 
         if (!this.all && !this.service) {
@@ -39,9 +38,11 @@ export class ServiceClone extends Command<RufiToolsContext> {
     }
 
     private async cloneOne(git: Git, serviceName: string) {
-        const service = await this.services.getConfig(serviceName);
+        const { Services, Logger } = this.context;
+
+        const service = await Services.getConfig(serviceName);
         if (!service || !service.enable) {
-            this.logger.warn('The service is invalid or is not enabled');
+            Logger.warn('The service is invalid or is not enabled');
             return;
         }
 
@@ -54,7 +55,9 @@ export class ServiceClone extends Command<RufiToolsContext> {
     }
 
     private async cloneAll(git: Git) {
-        const servicesConfigs = await this.services.configs();
+        const { Services } = this.context;
+
+        const servicesConfigs = await Services.configs();
         const servicesEnabled = servicesConfigs.filter(
             service => service.enable
         );

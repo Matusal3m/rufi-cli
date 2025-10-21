@@ -7,20 +7,19 @@ export class MigrationAll extends Command<RufiToolsContext> {
 
     dev = Option.Boolean('--dev');
 
-    private readonly services = this.context.services;
-    private readonly logger = this.context.logger;
-
     async execute() {
-        const services = await this.services.local();
+        const { Services, Logger } = this.context;
+
+        const services = await Services.local();
         const coreName = process.env['CORE_SERVICE'];
 
-        this.logger.info('Checking for core service...');
+        Logger.info('Checking for core service...');
 
         const coreIndex = services.findIndex(
             (service: any) => service === coreName
         );
         if (coreIndex === -1) {
-            this.logger.error(
+            Logger.error(
                 `Core service '${coreName}' not found among local services.`
             );
             throw new Error(
@@ -30,7 +29,7 @@ export class MigrationAll extends Command<RufiToolsContext> {
 
         const [coreService] = services.splice(coreIndex, 1);
 
-        this.logger.info(
+        Logger.info(
             `Running migrations for ${color.bold(
                 'core'
             )} service: ${coreService}`
@@ -40,37 +39,35 @@ export class MigrationAll extends Command<RufiToolsContext> {
             await this.cli.run(['migration:up', coreService!], {
                 stdout: new PassThrough(),
             });
-            this.logger.success(`Core migration completed successfully.`);
+            Logger.success(`Core migration completed successfully.`);
         } catch (error) {
-            this.logger.error(
-                `Migration failed for core service '${coreService}'.`
-            );
+            Logger.error(`Migration failed for core service '${coreService}'.`);
             throw error;
         }
 
-        this.logger.info('Running migrations for remaining services...');
+        Logger.info('Running migrations for remaining services...');
 
         const migrationsPromises: Promise<any>[] = [];
         for (const service of services) {
-            this.logger.divider();
-            this.logger.info(`Starting migration for ${service}...`);
+            Logger.divider();
+            Logger.info(`Starting migration for ${service}...`);
 
             try {
                 await this.cli.run(['migration:up', service], {
                     stdout: new PassThrough(),
                 });
-                this.logger.success(`Migration completed for ${service}.`);
+                Logger.success(`Migration completed for ${service}.`);
             } catch (error) {
-                this.logger.warn(
+                Logger.warn(
                     `Could not run migration for service ${color.bold(
                         service
                     )}.`
                 );
             }
         }
-        this.logger.divider();
+        Logger.divider();
 
         await Promise.all(migrationsPromises);
-        this.logger.success('All migrations finished!');
+        Logger.success('All migrations finished!');
     }
 }

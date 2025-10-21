@@ -22,27 +22,26 @@ export class DbTables extends Command<RufiToolsContext> {
         ],
     });
 
-    private readonly services = this.context.services;
-    private readonly logger = this.context.logger;
-
     async execute() {
-        const services = await this.services.local();
+        const { Services, Logger } = this.context;
 
-        this.logger.info('Fetching tables for each schema...\n');
+        const services = await Services.local();
+
+        Logger.info('Fetching tables for each schema...\n');
 
         if (!services.length) {
-            this.logger.info('No schemas registered.');
+            Logger.info('No schemas registered.');
         }
 
         for (const service of services) {
             try {
-                const tables = await this.services.tablesFrom(service);
+                const tables = await Services.tablesFrom(service);
 
                 this.logServiceSection(service, tables);
 
-                this.logger.divider();
+                Logger.divider();
             } catch (err: any) {
-                this.logger.error(
+                Logger.error(
                     `Error fetching tables for service ${service}: ${err.message}`
                 );
             }
@@ -50,21 +49,23 @@ export class DbTables extends Command<RufiToolsContext> {
     }
 
     private logServiceSection(service: string, tables: string[]) {
-        const schema = this.services.getSchemaName(service);
-        const isCore = this.services.isCore(service);
+        const { Services, Logger } = this.context;
 
-        this.logger.section(
+        const schema = Services.getSchemaName(service);
+        const isCore = Services.isCore(service);
+
+        Logger.section(
             `Schema ${color.green(schema)}` +
                 (isCore ? color.gray(` (core)`) : '')
         );
 
         if (tables.length === 0) {
-            this.logger.bullet('No tables found');
+            Logger.bullet('No tables found');
             return;
         }
 
         for (const table of tables) {
-            this.logger.bullet(table);
+            Logger.bullet(table);
         }
     }
 }

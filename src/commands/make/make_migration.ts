@@ -31,10 +31,9 @@ export class MakeMigration extends Command<RufiToolsContext> {
     table = Option.String({ name: 'table #1', required: true });
     service = Option.String({ name: 'service #2', required: true });
 
-    private readonly logger = this.context.logger;
-
     async execute() {
-        this.logger.section('Creating Migration');
+        const { Logger } = this.context;
+        Logger.section('Creating Migration');
 
         const migrationsPath = path.join(
             process.cwd(),
@@ -65,11 +64,9 @@ export class MakeMigration extends Command<RufiToolsContext> {
 
         fs.writeFileSync(filePath, template);
 
-        this.logger.success(`Migration created: ${migration}.sql`);
+        Logger.success(`Migration created: ${migration}.sql`);
 
-        this.logger.bullet(
-            `Location: ${filePath.replace(process.cwd() + '/', '')}`
-        );
+        Logger.bullet(`Location: ${filePath.replace(process.cwd() + '/', '')}`);
     }
 
     private template(migration: string, schema: string) {

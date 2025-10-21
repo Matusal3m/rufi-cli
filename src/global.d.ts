@@ -4,9 +4,9 @@ import { BaseContext } from 'clipanion';
 
 declare global {
     interface RufiToolsContext extends BaseContext {
-        services: Services;
-        migrations: Migrations;
-        logger: typeof RufiLogger;
+        Services: Services;
+        Migrations: Migrations;
+        Logger: typeof RufiLogger;
         config: RufiConfig;
     }
 }

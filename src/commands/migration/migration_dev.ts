@@ -27,61 +27,57 @@ export class MigrationDev extends Command<RufiToolsContext> {
         description: 'Force migration even on core service',
     });
 
-    private readonly services = this.context.services;
-    private readonly logger = this.context.logger;
-    private readonly migrations = this.context.migrations;
-
     async execute() {
-        const isCore = this.services.isCore(this.service);
+        const { Services, Migrations, Logger } = this.context;
+
+        const isCore = Services.isCore(this.service);
 
         if (isCore && !this.force) {
             return this.warnCoreProtection();
         }
 
-        this.logger.section(
+        Logger.section(
             `Starting development migrations for service: ${color.cyan(
                 this.service
             )}`
         );
 
-        const schema = this.services.getSchemaName(this.service);
+        const schema = Services.getSchemaName(this.service);
 
         try {
-            await this.services.dropServiceSchema(this.service);
-            await this.services.ensureSchemaExistence(schema);
+            await Services.dropServiceSchema(this.service);
+            await Services.ensureSchemaExistence(schema);
 
-            const serviceConfig = await this.services.getConfig(this.service);
-            const migrationDir = await this.migrations.defaultMigrationDir(
+            const serviceConfig = await Services.getConfig(this.service);
+            const migrationDir = await Migrations.defaultMigrationDir(
                 this.service
             );
 
-            const parser = this.migrations.getParser(serviceConfig!);
+            const parser = Migrations.getParser(serviceConfig!);
             const migrations = await parser.execute(migrationDir);
 
             if (migrations.length === 0) {
-                this.logger.warn(
+                Logger.warn(
                     'No migration files found. Nothing will be applied.'
                 );
                 return;
             }
 
-            await this.migrations.applyMigrations(
-                migrations,
-                schema,
-                migrationDir
-            );
+            await Migrations.applyMigrations(migrations, schema, migrationDir);
         } catch (err: any) {
-            this.logger.error('Error while running dev migration');
-            this.logger.error(err.message || err);
+            Logger.error('Error while running dev migration');
+            Logger.error(err.message || err);
             throw err;
         }
 
-        this.logger.section(
+        Logger.section(
             `Done. Reapplied migration(s) for ${color.cyan(this.service)}.`
         );
     }
 
     private warnCoreProtection() {
+        const { Logger } = this.context;
+
         const warning = Format.template.flat(
             `${color.yellow(
                 `Migration blocked for core service: "${this.service}"`
@@ -93,6 +89,6 @@ export class MigrationDev extends Command<RufiToolsContext> {
             ${color.gray(`rufi migration:dev ${this.service} --force`)}`
         );
 
-        this.logger.warn(warning);
+        Logger.warn(warning);
     }
 }

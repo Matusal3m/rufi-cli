@@ -10,39 +10,38 @@ export class Reset extends Command<RufiToolsContext> {
         description: 'Removes all services and clear the migration registry',
     });
 
-    private readonly services = this.context.services;
-    private readonly logger = this.context.logger;
-
     async execute() {
-        this.logger.info('Starting reset process...');
+        const { Services, Logger } = this.context;
+
+        Logger.info('Starting reset process...');
 
         if (process.env['ENV'] !== 'development') {
             console.warn(
                 'Reset command can only be run in development environment'
             );
-            this.logger;
+            Logger;
         }
 
-        this.logger.info('Running database reset...');
+        Logger.info('Running database reset...');
         await this.cli.run(['db:reset'], {
             stdin: new PassThrough(),
         });
-        this.logger.info('Database reset completed successfully');
+        Logger.info('Database reset completed successfully');
 
-        const services = await this.services.local();
+        const services = await Services.local();
 
         for (const service of services) {
             const servicePath = path.join(process.cwd(), 'services', service);
 
             try {
-                this.logger.info(`Removing service: ${service}`);
+                Logger.info(`Removing service: ${service}`);
                 await fs.rm(servicePath, { recursive: true, force: true });
-                this.logger.info(`Successfully removed service: ${service}`);
+                Logger.info(`Successfully removed service: ${service}`);
             } catch (error) {
-                this.logger.error(`Failed to remove service: ${service}`);
+                Logger.error(`Failed to remove service: ${service}`);
             }
         }
 
-        this.logger.info('Reset process completed successfully');
+        Logger.info('Reset process completed successfully');
     }
 }

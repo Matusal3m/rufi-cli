@@ -11,22 +11,21 @@ export class Start extends Command<RufiToolsContext> {
             'Initializes the environment by cloning all services and applying database migrations.',
     });
 
-    private readonly services = this.context.services;
-    private readonly logger = this.context.logger;
-
     async execute() {
-        const services = await this.services.local();
+        const { Services, Logger } = this.context;
+
+        const services = await Services.local();
         const hasServices = services.length;
 
         if (hasServices) {
-            this.logger.error(
+            Logger.error(
                 `The ${color.gray(
                     'start'
                 )} command can only be executed when there are no initialized services.`
             );
         }
 
-        this.logger.info('Starting RUFI environment...');
+        Logger.info('Starting RUFI environment...');
 
         await this.cli.run(['service:clone', '--all'], {
             stdout: new PassThrough(),
@@ -36,6 +35,6 @@ export class Start extends Command<RufiToolsContext> {
             stdout: new PassThrough(),
         });
 
-        this.logger.success('✅ Environment successfully initialized!');
+        Logger.success('✅ Environment successfully initialized!');
     }
 }
