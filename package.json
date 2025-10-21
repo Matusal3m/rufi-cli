@@ -8,18 +8,14 @@
     },
     "type": "module",
     "scripts": {
-        "build": "tsc && tsc-alias -f",
-        "prepare": "npm run build"
+        "build": "tsc && tsc-alias -f"
     },
     "devDependencies": {
-        "@types/bun": "latest",
-        "@types/node": "^24.8.1",
         "clipanion": "^4.0.0-rc.4",
         "pg": "^8.16.3",
         "tsc-alias": "^1.8.16"
     },
     "peerDependencies": {
-        "@types/node": "^24.7.2",
         "@types/pg": "^8.15.5",
         "typescript": "^5"
     },
@@ -33,14 +29,10 @@
         "automation",
         "rufi"
     ],
-    "author": "Coacervados <contact@coacervados.dev>",
+    "author": "Matusal3m <matusalem.dev@gmail.com>",
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/Coacervados/rufi-cli.git"
-    },
-    "bugs": {
-        "url": "https://github.com/Coacervados/rufi-cli/issues"
-    },
-    "homepage": "https://github.com/Coacervados/rufi-cli#readme"
+        "url": "https://github.com/Matusal3m/rufi-cli.git"
+    }
 }
