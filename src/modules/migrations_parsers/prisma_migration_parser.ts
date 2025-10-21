@@ -6,9 +6,19 @@ import { existsSync, mkdirSync } from 'fs';
 
 export class PrismaMigrationParser extends MigrationParser {
     async execute(destination: string): Promise<string[]> {
-        const { directoryToParse, name } = this.serviceConfig;
+        const { directory, parse } = this.serviceConfig.migrations || {};
 
-        if (!directoryToParse) {
+        if (parse !== 'prisma') {
+            throw new Error(
+                color.red(
+                    `${color.bold(
+                        'PrismaMigrationParser'
+                    )} can only be used with 'prisma' parse method`
+                )
+            );
+        }
+
+        if (!directory) {
             throw new Error(
                 color.red(
                     `${color.bold('directoryToParse')} config is required`
@@ -19,8 +29,8 @@ export class PrismaMigrationParser extends MigrationParser {
         const sourceDir = path.join(
             process.cwd(),
             'services',
-            name,
-            directoryToParse
+            this.serviceName,
+            directory
         );
 
         try {
@@ -31,14 +41,14 @@ export class PrismaMigrationParser extends MigrationParser {
             await this.createMigrationFiles(sourceDir, destination, migrations);
 
             RufiLogger.info(
-                `Prisma migrations from ${directoryToParse} parsed to ${destination}`
+                `Prisma migrations from ${directory} parsed to ${destination}`
             );
 
             return migrations.map(migration => `${migration}.sql`);
         } catch (error) {
             RufiLogger.error(
                 `Something whent wrong with Prisma migration parsing process to ${color.bold(
-                    name
+                    this.serviceName
                 )} service.`
             );
             return [];

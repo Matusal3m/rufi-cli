@@ -4,8 +4,8 @@ import * as fs from 'fs';
 
 export abstract class MigrationParser {
     constructor(
-        private readonly serviceName: string,
-        private readonly serviceConfig: ServiceConfig
+        protected readonly serviceName: string,
+        protected readonly serviceConfig: ServiceConfig
     ) {}
 
     abstract execute(destination: string): Promise<string[]>;
