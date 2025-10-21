@@ -36,8 +36,8 @@ export class Init extends Command<RufiToolsContext> {
 
         const configContent = `
             import { Rufi } from 'rufi-cli';
+            // Comment that block if you're using any runtime that loads .env automatically
             import path from 'path';
-
             const envPath = path.join(process.cwd(), '.env');
             process.loadEnvFile(envPath);
 
@@ -55,7 +55,7 @@ export class Init extends Command<RufiToolsContext> {
                     port: Number(env('POSTGRES_PORT')),
                     password: env('POSTGRES_PASSWORD'),
                 },
-                env: 'development',
+                env: env('ENV'),
                 coreService: env('CORE_SERVICE'),
             });`;
 
