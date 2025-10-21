@@ -11,9 +11,7 @@ export class MigrationsRegistry extends Database {
     async init() {
         await this.query(`CREATE SCHEMA IF NOT EXISTS rufi`);
         await this.query(`
-            SET search_path TO rufi, public;
-            
-            CREATE TABLE IF NOT EXISTS rufi_migrations (
+            CREATE TABLE IF NOT EXISTS rufi.rufi_migrations (
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(255) NOT NULL UNIQUE,
                 applied_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -103,10 +101,24 @@ export class MigrationsRegistry extends Database {
         applied_at: new Date(m.applied_at).toLocaleString(),
     });
 
-    async runMigration(sql: string, schema: string) {
-        await this.transaction(async client => {
-            await client.query(`SET search_path TO ${schema}, public;`);
-            await client.query(sql);
+    runMigration(sql: string, schema: string) {
+        return this.transaction(async client => {
+            try {
+                await client.query(`SET SEARCH_PATH = ${schema}`);
+            } catch (error) {
+                console.error(
+                    `Failed to set search path to schema ${schema}:`,
+                    error
+                );
+                throw error;
+            }
+
+            try {
+                await client.query(sql);
+            } catch (error) {
+                console.error(`Failed to execute migration SQL:`, error);
+                throw error;
+            }
         });
     }
 }

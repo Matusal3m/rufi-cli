@@ -74,6 +74,8 @@ export class Migrations {
         const schema = this.services.getSchemaName(service);
         let appliedCount = 0;
 
+        await this.services.ensureSchemaExistence(schema);
+
         for (const migration of migrations) {
             const migrationPath = path.join(dir, migration);
             const { isValid, message } = await this.isValidMigration(
@@ -104,7 +106,7 @@ export class Migrations {
                     `Failed to apply ${migration}: ${err.message || err}`
                 );
                 RufiLogger.warn('Migration process stopped due to error.');
-                break;
+                throw err;
             }
         }
 

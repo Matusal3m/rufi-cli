@@ -36,7 +36,7 @@ export class MigrationAll extends Command<RufiToolsContext> {
         );
 
         try {
-            await this.cli.run(['migration:up', coreService!], {
+            await this.cli.run(['migration:up', coreService], {
                 stdout: new PassThrough(),
             });
             Logger.success(`Core migration completed successfully.`);
