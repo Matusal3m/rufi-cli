@@ -1,6 +1,16 @@
 {
     "name": "rufi-cli",
+    "version": "1.1.0",
+    "description": "A command-line tool for managing services, database migrations, and environments in distributed or microservice-based projects.",
     "main": "index.js",
+    "bin": {
+        "rufi": "./cli.js"
+    },
+    "type": "module",
+    "scripts": {
+        "build": "tsc && tsc-alias -f",
+        "prepare": "npm run build"
+    },
     "devDependencies": {
         "@types/bun": "latest",
         "@types/node": "^24.8.1",
@@ -13,11 +23,24 @@
         "@types/pg": "^8.15.5",
         "typescript": "^5"
     },
-    "bin": {
-        "rufi": "./cli.js"
+    "keywords": [
+        "cli",
+        "microservices",
+        "postgres",
+        "database",
+        "migration",
+        "dev-tools",
+        "automation",
+        "rufi"
+    ],
+    "author": "Coacervados <contact@coacervados.dev>",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Coacervados/rufi-cli.git"
     },
-    "scripts": {
-        "build": "tsc && tsc-alias -f"
+    "bugs": {
+        "url": "https://github.com/Coacervados/rufi-cli/issues"
     },
-    "type": "module"
+    "homepage": "https://github.com/Coacervados/rufi-cli#readme"
 }
