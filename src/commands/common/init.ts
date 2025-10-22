@@ -36,7 +36,7 @@ export class Init extends Command<RufiToolsContext> {
 
         const configContent = `
             import { Rufi } from 'rufi-cli';
-            // Comment that block if you're using any runtime that loads .env automatically
+            // Comment or remove that block if you're using any runtime that loads .env automatically
             import path from 'path';
             const envPath = path.join(process.cwd(), '.env');
             process.loadEnvFile(envPath);
@@ -90,11 +90,11 @@ export class Init extends Command<RufiToolsContext> {
 
             export default Rufi.services({
                 core: {
-                    repository: "github.com/Coacervados/rufi",
+                    repository: "github.com/org/rufi",
                     enable: true,
                 },
                 stock: {
-                    repository: "github.com/Coacervados/stock-project",
+                    repository: "github.com/org/stock-project",
                     enable: true,
                     parseMethod: "prisma",
                     directoryToParse: "database/prisma/migrations",
