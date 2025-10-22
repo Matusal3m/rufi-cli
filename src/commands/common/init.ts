@@ -76,9 +76,8 @@ export class Init extends Command<RufiToolsContext> {
 
         const servicesConfigPath = path.join(servicesDir, 'services.config');
 
-        const alreadyExistsServicesConfig = await File.hasJsOrTS(
-            servicesConfigPath
-        );
+        const alreadyExistsServicesConfig =
+            await File.hasJsOrTS(servicesConfigPath);
 
         if (alreadyExistsServicesConfig) {
             Logger.error('The services config file already exists.');
@@ -86,18 +85,24 @@ export class Init extends Command<RufiToolsContext> {
         }
 
         const servicesConfig = `
-            import { Rufi } from 'rufi-cli';
+            import { Rufi } from "rufi-cli";
 
             export default Rufi.services({
                 core: {
-                    repository: "github.com/org/rufi",
+                    git: {
+                        repository: "github.com/org/core",
+                    },
                     enable: true,
                 },
                 stock: {
-                    repository: "github.com/org/stock-project",
                     enable: true,
-                    parseMethod: "prisma",
-                    directoryToParse: "database/prisma/migrations",
+                    git: {
+                        repository: "github.com/org/stock",
+                    },
+                    migrations: {
+                        parse: "prisma",
+                        directory: "database/prisma/migrations",
+                    },
                 },
             });`;
 
