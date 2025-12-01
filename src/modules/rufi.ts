@@ -1,5 +1,4 @@
 import { Builtins, Cli } from 'clipanion';
-import { platform } from 'os';
 import { File, RufiLogger } from '@/utils';
 import { Init } from '../commands/common/init';
 import path from 'path';
@@ -90,12 +89,12 @@ export class Rufi {
         for (const command of commands) {
             const register = await this.getCommandRegister(
                 commandPath,
-                command
+                command,
             );
 
             if (!register) {
                 RufiLogger.warn(
-                    `Could not find register method to ${command} command`
+                    `Could not find register method to ${command} command`,
                 );
                 continue;
             }
@@ -112,15 +111,14 @@ export class Rufi {
 
     private async getCommandRegister(
         commandPath: string,
-        command: string
+        command: string,
     ): Promise<RegisterFunction | null> {
         const ext = this.getFileExtension();
 
         const commandRegister = path.resolve(
-            platform() ? 'C:\\' : '',
             commandPath,
             command,
-            `index.${ext}`
+            `index.${ext}`,
         );
 
         const fileExists = await File.exists(commandRegister);

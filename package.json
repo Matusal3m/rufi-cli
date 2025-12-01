@@ -8,7 +8,8 @@
     },
     "type": "module",
     "scripts": {
-        "build": "tsc && tsc-alias -f"
+        "build": "tsc && tsc-alias -f",
+        "test": "bun run ./test"
     },
     "dependencies": {
         "clipanion": "^4.0.0-rc.4",
