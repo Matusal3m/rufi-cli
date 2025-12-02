@@ -8,7 +8,7 @@ import { MigrationsRegistry, ServicesPersistence } from './persistence';
 
 (async () => {
     const rufiConfigPath = await File.hasJsOrTS(
-        path.join(process.cwd(), 'rufi.config')
+        path.join(process.cwd(), 'rufi.config'),
     );
 
     const command = process.argv[2];
@@ -35,7 +35,7 @@ import { MigrationsRegistry, ServicesPersistence } from './persistence';
     const services = new Services(
         servicesPersistence,
         migrationsRegistry,
-        rufi.config
+        rufi.config,
     );
     const migrations = new Migrations(migrationsRegistry, services);
 

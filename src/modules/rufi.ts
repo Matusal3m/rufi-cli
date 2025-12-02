@@ -41,6 +41,9 @@ export type ServicesConfig = Record<string, ServiceConfig>;
 type RegisterFunction = (cli: Cli) => void;
 
 export class Rufi {
+    // to enable multiple commands call with the same Rufi instance on test cases
+    private loadedCommands = false;
+
     private dependencies: Record<string, string> = {};
 
     private readonly cli = new Cli({
@@ -66,19 +69,25 @@ export class Rufi {
         process.exit(0);
     }
 
-    async run() {
-        const commandPath = path.join(import.meta.dirname, '..', 'commands');
-        const commands = await fs.readdir(commandPath);
+    async run(args?: string[]) {
+        if (!this.loadedCommands) {
+            const commandPath = path.join(
+                import.meta.dirname,
+                '..',
+                'commands',
+            );
+            const commands = await fs.readdir(commandPath);
 
-        await this.loadCommands(commandPath, commands);
+            await this.loadCommands(commandPath, commands);
+            this.cli.register(Builtins.HelpCommand);
 
-        const args = this.getArgs();
+            this.loadedCommands = true;
+        }
 
-        this.cli.register(Builtins.HelpCommand);
+        args = args || this.getArgs();
 
-        await this.cli.runExit(args, this.dependencies);
-
-        process.exit(0);
+        await this.cli.run(args, this.dependencies);
+        if (process.env.NODE_ENV !== 'test') process.exit(0);
     }
 
     public setDependencies(deps: Record<string, any>) {
