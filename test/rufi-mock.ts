@@ -13,6 +13,7 @@ export class RufiMock {
     }
 
     private async getDepencencies() {
+        // TODO: improve the abstraction to mock the dependencies
         const servicesPersistence = new ServicesPersistence(
             this.config.postgres,
         );

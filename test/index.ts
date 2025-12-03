@@ -1,27 +1,9 @@
-import { RufiConfig } from '../src/modules';
+import { ServicesConfig } from '../src/modules';
 import { CLITester } from './cli-tester';
 import { EnvironmentManager } from './environment-manager';
 
 (async () => {
-    const env = (varEnv: string) => process.env[varEnv] || '';
-
-    const config: RufiConfig = {
-        git: {
-            token: env('GIT_TOKEN'),
-            username: env('GIT_USERNAME'),
-        },
-        postgres: {
-            host: env('POSTGRES_HOST'),
-            database: env('POSTGRES_DATABASE'),
-            user: env('POSTGRES_USER'),
-            port: Number(env('POSTGRES_PORT')),
-            password: env('POSTGRES_PASSWORD'),
-        },
-        env: 'development',
-        coreService: env('CORE_SERVICE'),
-    };
-
-    const envManager = new EnvironmentManager({
+    const realServices: ServicesConfig = {
         rufi: {
             enable: true,
             git: {
@@ -40,9 +22,15 @@ import { EnvironmentManager } from './environment-manager';
                 repository: 'github/Coacervados/kaution-system',
             },
         },
+    };
+
+    const envManager = new EnvironmentManager(realServices, {
+        withFakeServices: true,
     });
 
-    await new CLITester(config, { logFinalData: true })
+    const config = envManager.configFromEnv();
+
+    await new CLITester(config)
         .beforeRun(async () => {
             await envManager.writeConfigFile();
         })

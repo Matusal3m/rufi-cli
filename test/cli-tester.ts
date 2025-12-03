@@ -2,10 +2,6 @@ import { Rufi, RufiConfig } from '../src/modules';
 import { color, RufiLogger as Log } from '../src/utils';
 import { RufiMock } from './rufi-mock';
 
-type CLITesterOptions = {
-    logFinalData?: boolean;
-};
-
 type CommandTest = string[];
 type ProcessTest = TestCase[];
 
@@ -19,14 +15,11 @@ export class CLITester {
     private afterRunCB: () => any = () => {};
     private beforeRunCB: () => any = () => {};
 
-    constructor(
-        private readonly rufiConfig: RufiConfig,
-        private readonly options?: CLITesterOptions
-    ) {}
+    constructor(private readonly rufiConfig: RufiConfig) {}
 
     public testBlock(
         name: string,
-        testBlock: (register: RegisterTestProcessCase) => any
+        testBlock: (register: RegisterTestProcessCase) => any,
     ) {
         const testsFromBlock: TestCase[] = [];
 
@@ -74,19 +67,14 @@ export class CLITester {
         for (const test of testCases) {
             const { name, treatment } = test;
 
-            if (this.testCases === testCases) {
-                Log.section(`Test case: ${color.bold(name)}`);
-            }
-
-            if (this.testCases !== testCases) {
-                Log.section(`Test case: ${color.bold(name)}`, 5);
-            }
+            const arrowsCount = this.testCases === testCases ? 1 : 5;
+            Log.section(`Test case: ${color.bold(name)}`, arrowsCount);
 
             if (this.isProcessTest(treatment)) {
                 Log.bullet(
                     `${color.yellow('Process test length:')} ${color.blue(
-                        String(treatment.length)
-                    )}`
+                        String(treatment.length),
+                    )}`,
                 );
                 await this.runTestCases(rufi, treatment);
                 continue;
@@ -95,8 +83,8 @@ export class CLITester {
             if (this.isCommand(treatment)) {
                 Log.bullet(
                     `${color.yellow('Command(s):')} ${color.blue(
-                        treatment.join(', ')
-                    )}`
+                        treatment.join(', '),
+                    )}`,
                 );
                 await rufi.run(treatment);
                 continue;
