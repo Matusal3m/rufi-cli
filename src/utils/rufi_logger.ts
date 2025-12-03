@@ -25,8 +25,9 @@ export class RufiLogger {
         console.info(`   ${color.gray('•')} ${message}`);
     }
 
-    static section(title: string) {
-        console.info(`\n${color.blue('>')} ${color.cyan(title)}\n`);
+    static section(title: string, arrowsCounts = 1) {
+        const arrows = Array.from({ length: arrowsCounts }, () => '>');
+        console.info(`\n${color.gradient(arrows)} ${color.cyan(title)}\n`);
     }
 
     static divider() {

@@ -3,7 +3,7 @@ import { CLITester } from './cli-tester';
 import { EnvironmentManager } from './environment-manager';
 
 (async () => {
-    const env = varEnv => process.env[varEnv] || '';
+    const env = (varEnv: string) => process.env[varEnv] || '';
 
     const config: RufiConfig = {
         git: {
@@ -45,24 +45,21 @@ import { EnvironmentManager } from './environment-manager';
     await new CLITester(config, { logFinalData: true })
         .beforeRun(async () => {
             await envManager.writeConfigFile();
-            await new Promise(res => setTimeout(res, 1000));
         })
         .afterRun(async () => {
             await envManager.removeConfigFile();
             await envManager.removeServiceDir();
         })
-        .testBlock(register => {
-            register(() => {
-                console.log('test');
+        .testBlock('Logs test', register => {
+            register('Log nomes', () => {
+                console.log(['matusalem', 'livia']);
+            });
+            register('Log coisas', () => {
+                console.log(['mesa', 'cadeira', 'lapis']);
+            });
+            register('Log comidas', () => {
+                console.log(['banana', 'maçã', 'pão']);
             });
         })
-        .test('Clone all services', ['service:clone', '--all'])
-        .test('Show database schemas', ['db:schemas'])
-        .test('Create migration', [
-            'make:migration',
-            'create',
-            'test_table',
-            'rufi',
-        ])
         .run();
 })();

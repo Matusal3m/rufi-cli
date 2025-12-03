@@ -6,35 +6,42 @@ type CLITesterOptions = {
     logFinalData?: boolean;
 };
 
-export interface Session {
-    start(): Promise<void> | void;
-    end(): Promise<void> | void;
-}
+type CommandTest = string[];
+type ProcessTest = TestCase[];
 
-type TestCaseInfo = { name: string; args?: string[] };
-type TestCase = (caseInfo: TestCaseInfo) => any;
+type TestCase = { name: string; treatment: Treatment };
+type Treatment = CommandTest | ProcessTest | (() => any);
 
-type Callback = () => any;
-type TestCaseBlockInfo = Array<TestCaseInfo | Callback>;
+type RegisterTestProcessCase = (name: string, treatment: Treatment) => any;
 
 export class CLITester {
-    private readonly testCases: Array<TestCaseInfo | TestCaseBlockInfo> = [];
+    private readonly testCases: TestCase[] = [];
     private afterRunCB: () => any = () => {};
     private beforeRunCB: () => any = () => {};
 
     constructor(
         private readonly rufiConfig: RufiConfig,
-        private readonly options?: CLITesterOptions,
+        private readonly options?: CLITesterOptions
     ) {}
 
-    public testBlock(test: (register: TestCase | Callback) => any) {
-        const testBlock: TestCaseBlockInfo = [];
-        test(testBlock.push);
-        this.testCases.push(testBlock);
+    public testBlock(
+        name: string,
+        testBlock: (register: RegisterTestProcessCase) => any
+    ) {
+        const testsFromBlock: TestCase[] = [];
+
+        const pushTests: RegisterTestProcessCase = (name, treatment) => {
+            testsFromBlock.push({ name, treatment });
+        };
+
+        testBlock(pushTests);
+        this.testCases.push({ name, treatment: testsFromBlock });
+
+        return this;
     }
 
-    public test(name: string, args?: string[]) {
-        this.testCases.push({ name, args });
+    public test(name: string, args: Treatment) {
+        this.testCases.push({ name, treatment: args });
         return this;
     }
 
@@ -54,7 +61,7 @@ export class CLITester {
 
             const rufi = await new RufiMock(this.rufiConfig).get();
 
-            await this.runTestCases(rufi);
+            await this.runTestCases(rufi, this.testCases);
         } catch (error) {
             console.error('Error on test cases', error);
         } finally {
@@ -63,38 +70,64 @@ export class CLITester {
         }
     }
 
-    private async runTestCases(rufi: Rufi) {
-        for (const testCase of this.testCases) {
-            if (Array.isArray(testCase)) {
-                await this.runTestCaseBlock(rufi, testCase);
+    private async runTestCases(rufi: Rufi, testCases: TestCase[]) {
+        for (const test of testCases) {
+            const { name, treatment } = test;
+
+            if (this.testCases === testCases) {
+                Log.section(`Test case: ${color.bold(name)}`);
+            }
+
+            if (this.testCases !== testCases) {
+                Log.section(`Test case: ${color.bold(name)}`, 5);
+            }
+
+            if (this.isProcessTest(treatment)) {
+                Log.bullet(
+                    `${color.yellow('Process test length:')} ${color.blue(
+                        String(treatment.length)
+                    )}`
+                );
+                await this.runTestCases(rufi, treatment);
                 continue;
             }
 
-            await this.runTestCase(rufi, testCase);
-        }
-    }
-
-    private async runTestCase(rufi: Rufi, { name, args }: TestCaseInfo) {
-        Log.section(`Testing case: ${name}`);
-
-        await rufi.run(args);
-        const argsMessage = args ? `With args: ${args.join(', ')}` : 'None';
-
-        Log.bullet(color.blue(argsMessage));
-    }
-
-    private async runTestCaseBlock(
-        rufi: Rufi,
-        testCaseBlock: TestCaseBlockInfo,
-    ) {
-        Log.section('Running test block');
-
-        for (const testCase of testCaseBlock) {
-            if (typeof testCase === 'function') {
-                await testCase();
+            if (this.isCommand(treatment)) {
+                Log.bullet(
+                    `${color.yellow('Command(s):')} ${color.blue(
+                        treatment.join(', ')
+                    )}`
+                );
+                await rufi.run(treatment);
                 continue;
             }
-            this.runTestCase(rufi, testCase);
+
+            if (this.isCallback(treatment)) {
+                Log.bullet(color.yellow(`Callback test`));
+                await treatment();
+                continue;
+            }
         }
+    }
+
+    private isProcessTest(treatment: Treatment): treatment is ProcessTest {
+        return (
+            Array.isArray(treatment) &&
+            treatment.length > 0 &&
+            typeof treatment[0] === 'object' &&
+            'name' in treatment[0] &&
+            'treatment' in treatment[0]
+        );
+    }
+
+    private isCommand(treatment: Treatment): treatment is CommandTest {
+        return (
+            Array.isArray(treatment) &&
+            (treatment.length === 0 || typeof treatment[0] === 'string')
+        );
+    }
+
+    private isCallback(treatment: Treatment): treatment is () => any {
+        return typeof treatment === 'function';
     }
 }
