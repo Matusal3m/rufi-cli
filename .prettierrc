@@ -1,5 +1,13 @@
 {
     "tabWidth": 4,
     "singleQuote": true,
-    "arrowParens": "avoid"
+    "arrowParens": "avoid",
+    "overrides": [
+        {
+            "files": ["*.yaml"],
+            "options": {
+                "tabWidth": 2
+            }
+        }
+    ]
 }
