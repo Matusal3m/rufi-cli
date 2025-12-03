@@ -37,17 +37,10 @@ import { EnvironmentManager } from './environment-manager';
         .afterRun(async () => {
             await envManager.removeConfigFile();
             await envManager.removeServiceDir();
+            await envManager.removeMockedServices();
         })
-        .testBlock('Logs test', register => {
-            register('Log nomes', () => {
-                console.log(['matusalem', 'livia']);
-            });
-            register('Log coisas', () => {
-                console.log(['mesa', 'cadeira', 'lapis']);
-            });
-            register('Log comidas', () => {
-                console.log(['banana', 'maçã', 'pão']);
-            });
+        .testBlock('Services Process', _register => {
+            //
         })
         .run();
 })();

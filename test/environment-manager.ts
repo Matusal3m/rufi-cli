@@ -39,6 +39,14 @@ export class EnvironmentManager {
         return fs.rm(this.filepath, { force: true });
     }
 
+    public removeMockedServices() {
+        return Promise.all(
+            this.mockedServices.map(path =>
+                fs.rm(path, { force: true, recursive: true }),
+            ),
+        );
+    }
+
     public configFromEnv(): RufiConfig {
         const env = (varEnv: string) => process.env[varEnv] || '';
 
