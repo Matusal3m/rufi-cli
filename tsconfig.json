@@ -16,7 +16,9 @@
         "paths": {
             "@/utils": ["./src/utils/index.ts"],
             "@/persistence": ["./src/persistence/index.ts"],
-            "@/modules": ["./src/modules/index.ts"]
+            "@/cli-core": ["./src/modules/cli_core"],
+            "@/process-wrappers": ["./src/modules/process_wrappers"],
+            "@/migration": ["./src/modules/migration"]
         },
         "typeRoots": ["./src/**/*"],
         "noUnusedLocals": false,

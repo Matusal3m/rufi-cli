@@ -1,5 +1,5 @@
-import { Rufi, RufiConfig } from '../src/modules';
-import { color, RufiLogger as Log } from '../src/utils';
+import { Rufi, RufiConfig } from '@/cli-core';
+import { color, Log } from '@/utils';
 import { RufiMock } from './rufi-mock';
 
 type CommandTest = string[];
@@ -10,7 +10,7 @@ type Treatment = CommandTest | ProcessTest | (() => any);
 
 type RegisterTestProcessCase = (name: string, treatment: Treatment) => any;
 
-export class CLITester {
+export class ProcessTester {
     private readonly testCases: TestCase[] = [];
     private afterRunCB: () => any = () => {};
     private beforeRunCB: () => any = () => {};

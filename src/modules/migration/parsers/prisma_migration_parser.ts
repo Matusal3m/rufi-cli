@@ -1,4 +1,4 @@
-import { color, RufiLogger } from '@/utils';
+import { color, Log } from '@/utils';
 import { MigrationParser } from './migration_parser';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -40,13 +40,13 @@ export class PrismaMigrationParser extends MigrationParser {
             this.ensureDir(destination);
             await this.createMigrationFiles(sourceDir, destination, migrations);
 
-            RufiLogger.info(
+            Log.info(
                 `Prisma migrations from ${directory} parsed to ${destination}`
             );
 
             return migrations.map(migration => `${migration}.sql`);
         } catch (error) {
-            RufiLogger.error(
+            Log.error(
                 `Something whent wrong with Prisma migration parsing process to ${color.bold(
                     this.serviceName
                 )} service.`

@@ -1,8 +1,8 @@
-import { color, File, RufiLogger } from '@/utils';
+import { color, File, Log } from '@/utils';
 import { MigrationsRegistry, ServicesPersistence } from '@/persistence';
+import { RufiConfig, ServiceConfig, ServicesConfig } from './rufi';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { RufiConfig, ServiceConfig, ServicesConfig } from '.';
 
 export class Services {
     constructor(
@@ -50,7 +50,7 @@ export class Services {
         try {
             await this.servicesPersistence.createSchema(schema);
         } catch (err: any) {
-            RufiLogger.error(
+            Log.error(
                 `Failed to ensure schema existence: ${err.message || err}`
             );
             throw err;
@@ -72,7 +72,7 @@ export class Services {
         );
 
         if (!migrations || !migrations.length) {
-            RufiLogger.warn('No migrations registered for this service.');
+            Log.warn('No migrations registered for this service.');
             return;
         }
 
@@ -80,7 +80,7 @@ export class Services {
         try {
             await this.servicesPersistence.dropSchema(schema);
         } catch (err: any) {
-            RufiLogger.error(
+            Log.error(
                 `Error while dropping schema "${schema}": ${err.message || err}`
             );
             throw err;

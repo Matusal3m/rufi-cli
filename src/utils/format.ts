@@ -26,7 +26,7 @@ export class Format {
 
     private static getIndentReduceLength = (lines: string[]) => {
         // @ts-ignore
-        const indentsLength = lines.map((line, index) => {
+        const indentsLength = lines.map(line => {
             const matchs = line.match(/(^ *)/);
 
             if (!matchs) return 0;

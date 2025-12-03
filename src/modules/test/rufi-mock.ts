@@ -1,6 +1,7 @@
-import { Migrations, Rufi, RufiConfig, Services } from '../src/modules';
-import { RufiLogger } from '../src/utils';
-import { MigrationsRegistry, ServicesPersistence } from '../src/persistence';
+import { Migrations } from '@/migration';
+import { Log } from '../../utils';
+import { Rufi, RufiConfig, Services } from '@/cli-core';
+import { MigrationsRegistry, ServicesPersistence } from '../../persistence';
 
 export class RufiMock {
     constructor(private readonly config: RufiConfig) {}
@@ -31,7 +32,7 @@ export class RufiMock {
         return {
             Services: services,
             Migrations: migrations,
-            Logger: RufiLogger,
+            Logger: Log,
             config: this.config,
         };
     }

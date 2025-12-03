@@ -1,3 +1,3 @@
-import { Rufi } from './modules/rufi';
+import { Rufi } from '@/cli-core';
 
 export { Rufi };

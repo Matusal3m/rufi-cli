@@ -1,6 +1,6 @@
 import { Builtins, Cli } from 'clipanion';
-import { File, RufiLogger } from '@/utils';
-import { Init } from '../commands/common/init';
+import { File, Log } from '@/utils';
+import { Init } from '../../commands/common/init';
 import path from 'path';
 import fs from 'fs/promises';
 
@@ -65,7 +65,7 @@ export class Rufi {
 
         cli.register(Init);
         // @ts-ignore
-        await cli.runExit(process.argv.slice(2), { Logger: RufiLogger });
+        await cli.runExit(process.argv.slice(2), { Logger: Log });
         process.exit(0);
     }
 
@@ -73,6 +73,7 @@ export class Rufi {
         if (!this.loadedCommands) {
             const commandPath = path.join(
                 import.meta.dirname,
+                '..',
                 '..',
                 'commands',
             );
@@ -102,7 +103,7 @@ export class Rufi {
             );
 
             if (!register) {
-                RufiLogger.warn(
+                Log.warn(
                     `Could not find register method to ${command} command`,
                 );
                 continue;

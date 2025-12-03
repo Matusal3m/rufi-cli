@@ -1,5 +1,5 @@
-import { PGConfig } from '@/modules';
-import { RufiLogger } from '@/utils';
+import { PGConfig } from '@/cli-core';
+import { Log } from '@/utils';
 import { Pool, type PoolClient } from 'pg';
 
 type TransactionCallback = (client: PoolClient) => Promise<void>;
@@ -25,9 +25,9 @@ export abstract class Database {
         try {
             await this.pool.end();
             this.pool = null;
-            RufiLogger.bullet('Database connection closed.');
+            Log.bullet('Database connection closed.');
         } catch (err: any) {
-            RufiLogger.error(`Failed to close pool: ${err.message || err}`);
+            Log.error(`Failed to close pool: ${err.message || err}`);
         }
     }
 
@@ -38,7 +38,7 @@ export abstract class Database {
             const result = await this.pool.query(sql, params);
             return result.rows;
         } catch (err: any) {
-            RufiLogger.error(`Query failed: ${err.message || err}`);
+            Log.error(`Query failed: ${err.message || err}`);
             throw err;
         }
     }
@@ -53,7 +53,7 @@ export abstract class Database {
             await client.query('COMMIT');
         } catch (err: any) {
             await client.query('ROLLBACK');
-            RufiLogger.error(`Transaction failed: ${err.message || err}`);
+            Log.error(`Transaction failed: ${err.message || err}`);
             throw err;
         }
     }

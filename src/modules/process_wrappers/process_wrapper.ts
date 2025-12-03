@@ -1,5 +1,5 @@
 import { ChildProcess, spawn, spawnSync } from 'node:child_process';
-import { RufiLogger } from '@/utils';
+import { Log } from '@/utils';
 
 export class ProcessWrapper {
     constructor(protected command: string) {}
@@ -30,11 +30,11 @@ export class ProcessWrapper {
         return new Promise<void>((resolve, reject) => {
             process.on('close', code => {
                 if (code !== 0 && errorMessage) {
-                    if (errorMessage) RufiLogger.error(errorMessage);
+                    if (errorMessage) Log.error(errorMessage);
                     reject();
                 }
 
-                if (successMessage) RufiLogger.success(successMessage);
+                if (successMessage) Log.success(successMessage);
                 resolve();
             });
         });

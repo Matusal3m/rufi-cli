@@ -1,5 +1,5 @@
-import { RufiLogger, color } from '@/utils';
-import type { ServiceConfig } from '@/modules';
+import { Log, color } from '@/utils';
+import type { ServiceConfig } from '@/cli-core';
 import * as fs from 'fs';
 
 export abstract class MigrationParser {
@@ -38,7 +38,7 @@ export abstract class MigrationParser {
         try {
             return await this.execute(destination);
         } catch (err: any) {
-            RufiLogger.error(err);
+            Log.error(err);
             return [];
         }
     }

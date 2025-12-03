@@ -1,6 +1,6 @@
 import { color } from './color';
 
-export class RufiLogger {
+export class Log {
     static info(message: string) {
         console.info(`${color.blue('>')} ${message}`);
     }

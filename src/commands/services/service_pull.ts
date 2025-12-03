@@ -1,4 +1,4 @@
-import { Git } from '@/modules';
+import { Git } from '@/process-wrappers';
 import { Command, Option, UsageError } from 'clipanion';
 
 export class ServicePull extends Command<RufiToolsContext> {

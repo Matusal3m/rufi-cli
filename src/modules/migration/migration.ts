@@ -1,16 +1,16 @@
-import type { ServiceConfig } from '@/modules';
 import { UsageError } from 'clipanion';
 import { MigrationsRegistry } from '@/persistence';
-import { PrismaMigrationParser, MigrationParser, Services } from '@/modules';
-import { DefaultMigrationParser } from './migrations_parsers';
-import { color, File, RufiLogger } from '@/utils';
+import { Services } from '@/cli-core';
+import { PrismaMigrationParser, MigrationParser } from '@/migration';
+import { DefaultMigrationParser } from './parsers';
+import { color, File, Log } from '@/utils';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
 export class Migrations {
     constructor(
         private readonly migrationsRegistry: MigrationsRegistry,
-        private readonly services: Services
+        private readonly services: Services,
     ) {}
 
     private async servicePath(service: string) {
@@ -21,8 +21,8 @@ export class Migrations {
         if (!hasServiceDir) {
             throw new UsageError(
                 `${color.red('Service')} ${color.blue(service)} ${color.red(
-                    'could not be found'
-                )}`
+                    'could not be found',
+                )}`,
             );
         }
 
@@ -71,7 +71,7 @@ export class Migrations {
     async applyMigrations(
         migrations: string[],
         service: string,
-        dir: string
+        dir: string,
     ): Promise<number> {
         const schema = this.services.getSchemaName(service);
         let appliedCount = 0;
@@ -82,12 +82,12 @@ export class Migrations {
             const migrationPath = path.join(dir, migration);
             const { isValid, message } = await this.isValidMigration(
                 migrationPath,
-                migration
+                migration,
             );
 
             if (!isValid) {
-                RufiLogger.warn(
-                    `Skipping migration ${color.bold(migration)}: ${message}`
+                Log.warn(
+                    `Skipping migration ${color.bold(migration)}: ${message}`,
                 );
                 continue;
             }
@@ -96,18 +96,18 @@ export class Migrations {
                 const sql = await fs.readFile(migrationPath, {
                     encoding: 'utf8',
                 });
-                RufiLogger.info(`Applying ${migration} to schema ${schema}...`);
+                Log.info(`Applying ${migration} to schema ${schema}...`);
 
                 await this.migrationsRegistry.runMigration(sql, schema);
                 await this.migrationsRegistry.addMigration(migration, service);
 
-                RufiLogger.success(`Migration applied: ${migration}`);
+                Log.success(`Migration applied: ${migration}`);
                 appliedCount++;
             } catch (err: any) {
-                RufiLogger.error(
-                    `Failed to apply ${migration}: ${err.message || err}`
+                Log.error(
+                    `Failed to apply ${migration}: ${err.message || err}`,
                 );
-                RufiLogger.warn('Migration process stopped due to error.');
+                Log.warn('Migration process stopped due to error.');
                 throw err;
             }
         }

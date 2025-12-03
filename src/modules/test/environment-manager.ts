@@ -1,9 +1,9 @@
-import { RufiConfig, ServiceConfig, ServicesConfig } from '../src/modules';
+import { RufiConfig, ServiceConfig, ServicesConfig } from '@/cli-core';
 import { ServiceConfigGenerator } from './service-config-generator';
-import { Format } from '../src/utils';
-import fs from 'fs/promises';
+import { Format } from '@/utils';
 import { faker } from '@faker-js/faker';
 import { join } from 'path';
+import fs from 'fs/promises';
 
 type EnvironmentManagerOptions = {
     withFakeServices?: boolean;

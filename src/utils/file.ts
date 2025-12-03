@@ -13,7 +13,6 @@ export class File {
         path = this.resolvePlatformPath(path);
         return import(path);
     }
-
     static async hasJsOrTS(path: string): Promise<string | undefined> {
         if (await this.exists(path + '.ts')) {
             return path + '.ts';
@@ -23,8 +22,7 @@ export class File {
             return path + '.js';
         }
     }
-
-    private static resolvePlatformPath(path: string) {
+    static resolvePlatformPath(path: string) {
         if (process.platform === 'win32') {
             return 'file://' + path;
         }

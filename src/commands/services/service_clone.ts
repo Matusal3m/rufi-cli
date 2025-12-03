@@ -1,5 +1,5 @@
 import { Command, Option, UsageError } from 'clipanion';
-import { Git } from '@/modules';
+import { Git } from '@/process-wrappers';
 
 export class ServiceClone extends Command<RufiToolsContext> {
     static paths = [['service:clone']];

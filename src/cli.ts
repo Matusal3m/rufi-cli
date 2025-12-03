@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 import path from 'path';
-import { color, File, RufiLogger } from '@/utils';
-import { Rufi } from './modules/rufi';
-import { Migrations, Services } from './modules';
+import { color, File, Log } from '@/utils';
+import { Rufi, Services } from '@/cli-core';
+import { Migrations } from '@/migration';
 import { MigrationsRegistry, ServicesPersistence } from './persistence';
 
 (async () => {
@@ -19,9 +19,9 @@ import { MigrationsRegistry, ServicesPersistence } from './persistence';
     }
 
     if (!rufiConfigPath) {
-        RufiLogger.error('The Rufi config file was not found.');
+        Log.error('The Rufi config file was not found.');
         const initCommand = color.bold('rufi init');
-        RufiLogger.info(`Run ${initCommand} to create a Rufi config file.`);
+        Log.info(`Run ${initCommand} to create a Rufi config file.`);
         process.exit(1);
     }
 
@@ -42,7 +42,7 @@ import { MigrationsRegistry, ServicesPersistence } from './persistence';
     rufi.setDependencies({
         Services: services,
         Migrations: migrations,
-        Logger: RufiLogger,
+        Logger: Log,
         config: rufi.config,
     });
 
