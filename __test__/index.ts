@@ -1,31 +1,16 @@
-import { ServicesConfig } from '../src/modules/cli_core';
-import { EnvironmentManager, ProcessTester } from '../src/modules/test';
+import {
+    EnvironmentManager,
+    EnvironmentManagerOptions,
+    ProcessTester,
+} from '../src/modules/test';
 
 (async () => {
-    const realServices: ServicesConfig = {
-        rufi: {
-            enable: true,
-            git: {
-                branch: 'master',
-                repository: 'github/Coacervados/rufi-panel',
-            },
-        },
-        stock: {
-            enable: true,
-            migrations: {
-                parse: 'prisma',
-                directory: 'prisma/migrations',
-            },
-            git: {
-                branch: 'main',
-                repository: 'github/Coacervados/kaution-system',
-            },
-        },
-    };
+    const { default: servicesConfig } = await import('./services');
 
-    const envManager = new EnvironmentManager(realServices, {
+    const options: EnvironmentManagerOptions = {
         withFakeServices: true,
-    });
+    };
+    const envManager = new EnvironmentManager(servicesConfig(), options);
     const config = envManager.configFromEnv();
 
     await new ProcessTester(config)

@@ -5,7 +5,7 @@ import { faker } from '@faker-js/faker';
 import { join } from 'path';
 import fs from 'fs/promises';
 
-type EnvironmentManagerOptions = {
+export type EnvironmentManagerOptions = {
     withFakeServices?: boolean;
     fakeServicesCount?: number;
 };
