@@ -38,8 +38,8 @@ export class MigrationDev extends Command<RufiToolsContext> {
 
         Logger.section(
             `Starting development migrations for service: ${color.cyan(
-                this.service
-            )}`
+                this.service,
+            )}`,
         );
 
         const schema = Services.getSchemaName(this.service);
@@ -49,7 +49,7 @@ export class MigrationDev extends Command<RufiToolsContext> {
             await Services.ensureSchemaExistence(schema);
 
             const migrationDir = await Migrations.defaultMigrationDir(
-                this.service
+                this.service,
             );
 
             const parser = await Migrations.getParser(this.service);
@@ -57,7 +57,7 @@ export class MigrationDev extends Command<RufiToolsContext> {
 
             if (migrations.length === 0) {
                 Logger.warn(
-                    'No migration files found. Nothing will be applied.'
+                    'No migration files found. Nothing will be applied.',
                 );
                 return;
             }
@@ -70,7 +70,7 @@ export class MigrationDev extends Command<RufiToolsContext> {
         }
 
         Logger.section(
-            `Done. Reapplied migration(s) for ${color.cyan(this.service)}.`
+            `Done. Reapplied migration(s) for ${color.cyan(this.service)}.`,
         );
     }
 
@@ -79,13 +79,13 @@ export class MigrationDev extends Command<RufiToolsContext> {
 
         const warning = Format.template.flat(
             `${color.yellow(
-                `Migration blocked for core service: "${this.service}"`
+                `Migration blocked for core service: "${this.service}"`,
             )}
             This schema may contain tables referenced by other services,
             and running migrations directly could cause data loss or integrity issues.
 
             If you really need to proceed, use:
-            ${color.gray(`rufi migration:dev ${this.service} --force`)}`
+            ${color.gray(`rufi migration:dev ${this.service} --force`)}`,
         );
 
         Logger.warn(warning);

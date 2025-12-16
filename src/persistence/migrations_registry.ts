@@ -50,7 +50,7 @@ export class MigrationsRegistry extends Database {
              FROM rufi.rufi_migrations
              WHERE service = $1
              ORDER BY applied_at ASC`,
-            [service]
+            [service],
         );
         return rows.map(this.normalize);
     }
@@ -69,7 +69,7 @@ export class MigrationsRegistry extends Database {
             `SELECT COUNT(*) AS count
              FROM rufi.rufi_migrations
              WHERE name = $1`,
-            [name]
+            [name],
         );
         return result ? Number(result.count) > 0 : false;
     }
@@ -80,7 +80,7 @@ export class MigrationsRegistry extends Database {
              WHERE service = $1
              ORDER BY applied_at DESC
              LIMIT 1`,
-            [service]
+            [service],
         );
         return last ? this.normalize(last) : undefined;
     }
@@ -92,7 +92,7 @@ export class MigrationsRegistry extends Database {
     async clearService(service: string) {
         await this.query(
             `DELETE FROM rufi.rufi_migrations WHERE service = $1`,
-            [service]
+            [service],
         );
     }
 
@@ -108,7 +108,7 @@ export class MigrationsRegistry extends Database {
             } catch (error) {
                 console.error(
                     `Failed to set search path to schema ${schema}:`,
-                    error
+                    error,
                 );
                 throw error;
             }

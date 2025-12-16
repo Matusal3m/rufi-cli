@@ -8,7 +8,7 @@ export class Services {
     constructor(
         private readonly servicesPersistence: ServicesPersistence,
         private readonly migrationsRegistry: MigrationsRegistry,
-        private readonly config: RufiConfig
+        private readonly config: RufiConfig,
     ) {}
 
     async getConfig(serviceName: string): Promise<ServiceConfig> {
@@ -16,7 +16,7 @@ export class Services {
         const serviceConfig = services[serviceName];
         if (!serviceConfig) {
             throw new Error(
-                `Could not find configuration for service "${serviceName}".`
+                `Could not find configuration for service "${serviceName}".`,
             );
         }
         return serviceConfig;
@@ -24,7 +24,7 @@ export class Services {
 
     async configs(): Promise<ServicesConfig> {
         const servicesConfigPath = await File.hasJsOrTS(
-            path.join(process.cwd(), 'services', 'services.config')
+            path.join(process.cwd(), 'services', 'services.config'),
         );
 
         if (!servicesConfigPath) {
@@ -41,7 +41,7 @@ export class Services {
             withFileTypes: true,
         });
         const directories = fileTypes.filter(fileType =>
-            fileType.isDirectory()
+            fileType.isDirectory(),
         );
         return directories.map(dir => dir.name);
     }
@@ -51,7 +51,7 @@ export class Services {
             await this.servicesPersistence.createSchema(schema);
         } catch (err: any) {
             Log.error(
-                `Failed to ensure schema existence: ${err.message || err}`
+                `Failed to ensure schema existence: ${err.message || err}`,
             );
             throw err;
         }
@@ -67,9 +67,8 @@ export class Services {
     }
 
     async dropServiceSchema(service: string): Promise<void> {
-        const migrations = await this.migrationsRegistry.migrationsFromService(
-            service
-        );
+        const migrations =
+            await this.migrationsRegistry.migrationsFromService(service);
 
         if (!migrations || !migrations.length) {
             Log.warn('No migrations registered for this service.');
@@ -81,7 +80,7 @@ export class Services {
             await this.servicesPersistence.dropSchema(schema);
         } catch (err: any) {
             Log.error(
-                `Error while dropping schema "${schema}": ${err.message || err}`
+                `Error while dropping schema "${schema}": ${err.message || err}`,
             );
             throw err;
         }
@@ -102,7 +101,7 @@ export class Services {
             schemaname: string;
             tablename: string;
         }>(
-            `SELECT schemaname, tablename FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema')`
+            `SELECT schemaname, tablename FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema')`,
         );
 
         return rows.map(row => ({

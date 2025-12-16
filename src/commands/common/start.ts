@@ -20,8 +20,8 @@ export class Start extends Command<RufiToolsContext> {
         if (hasServices) {
             Logger.error(
                 `The ${color.gray(
-                    'start'
-                )} command can only be executed when there are no initialized services.`
+                    'start',
+                )} command can only be executed when there are no initialized services.`,
             );
         }
 

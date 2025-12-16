@@ -12,17 +12,17 @@ export class PrismaMigrationParser extends MigrationParser {
             throw new Error(
                 color.red(
                     `${color.bold(
-                        'PrismaMigrationParser'
-                    )} can only be used with 'prisma' parse method`
-                )
+                        'PrismaMigrationParser',
+                    )} can only be used with 'prisma' parse method`,
+                ),
             );
         }
 
         if (!directory) {
             throw new Error(
                 color.red(
-                    `${color.bold('directoryToParse')} config is required`
-                )
+                    `${color.bold('directoryToParse')} config is required`,
+                ),
             );
         }
 
@@ -30,7 +30,7 @@ export class PrismaMigrationParser extends MigrationParser {
             process.cwd(),
             'services',
             this.serviceName,
-            directory
+            directory,
         );
 
         try {
@@ -41,15 +41,15 @@ export class PrismaMigrationParser extends MigrationParser {
             await this.createMigrationFiles(sourceDir, destination, migrations);
 
             Log.info(
-                `Prisma migrations from ${directory} parsed to ${destination}`
+                `Prisma migrations from ${directory} parsed to ${destination}`,
             );
 
             return migrations.map(migration => `${migration}.sql`);
         } catch (error) {
             Log.error(
                 `Something whent wrong with Prisma migration parsing process to ${color.bold(
-                    this.serviceName
-                )} service.`
+                    this.serviceName,
+                )} service.`,
             );
             return [];
         }
@@ -67,13 +67,13 @@ export class PrismaMigrationParser extends MigrationParser {
     private async createMigrationFiles(
         sourceDir: string,
         destination: string,
-        migrations: string[]
+        migrations: string[],
     ) {
         const promises = migrations.map(async migrationName => {
             const migrationPath = path.join(
                 sourceDir,
                 migrationName,
-                'migration.sql'
+                'migration.sql',
             );
             this.ensureMigrationExists(migrationPath, migrationName);
 

@@ -4,10 +4,10 @@ Rufi CLI is a command-line interface tool designed to manage and streamline the 
 
 ## Features
 
--   Clone and pull services from Git repositories.
--   Manage database migrations for individual or all services.
--   Reset and initialize the development environment.
--   List database schemas and tables.
+- Clone and pull services from Git repositories.
+- Manage database migrations for individual or all services.
+- Reset and initialize the development environment.
+- List database schemas and tables.
 
 ## Installation
 
@@ -48,8 +48,8 @@ GIT_USERNAME=username
 
 > Note: It may fail if:
 >
-> -   The database is not running
-> -   Any credential is incorrect
+> - The database is not running
+> - Any credential is incorrect
 
 ## Usage
 

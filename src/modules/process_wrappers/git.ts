@@ -17,7 +17,10 @@ type DiffOptions = {
 } & Omit<DefaultGitOptions, 'name'>;
 
 export class Git extends ProcessWrapper {
-    constructor(private username?: string, private token?: string) {
+    constructor(
+        private username?: string,
+        private token?: string,
+    ) {
         super('git');
         this.ensureExistence();
     }
@@ -42,9 +45,9 @@ export class Git extends ProcessWrapper {
         });
 
         const successMessage = `Repository ${color.bold(
-            repository
+            repository,
         )} cloned successfully to: ${color.bold(
-            name || repository.split('/').at(-1)!
+            name || repository.split('/').at(-1)!,
         )}`;
 
         return this.promisify(git, successMessage, errorMessage);
@@ -56,11 +59,11 @@ export class Git extends ProcessWrapper {
 
         const git = this.spawnShell(
             `cd ${gitDir} && git pull ${url} ${branch ?? 'master'}`,
-            verbose
+            verbose,
         );
 
         const successMessage = `Repository ${color.bold(
-            repository
+            repository,
         )} pulled successfully${branch ? ` on branch ${branch}` : ''}.`;
 
         let errorMessage = '';
@@ -76,7 +79,7 @@ export class Git extends ProcessWrapper {
 
         const git = this.spawnShell(
             `cd ${gitDir} && git diff ${args.join(' ')}`,
-            verbose
+            verbose,
         );
 
         let data = '';

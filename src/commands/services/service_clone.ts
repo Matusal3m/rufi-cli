@@ -25,7 +25,7 @@ export class ServiceClone extends Command<RufiToolsContext> {
 
         if (this.service && this.all) {
             throw new UsageError(
-                'Only one can be selected: <service> or --all'
+                'Only one can be selected: <service> or --all',
             );
         }
 

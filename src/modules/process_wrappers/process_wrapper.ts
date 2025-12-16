@@ -25,7 +25,7 @@ export class ProcessWrapper {
     promisify(
         process: ChildProcess,
         successMessage?: string,
-        errorMessage?: string
+        errorMessage?: string,
     ) {
         return new Promise<void>((resolve, reject) => {
             process.on('close', code => {

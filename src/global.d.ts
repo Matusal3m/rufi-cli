@@ -1,4 +1,4 @@
-import { Migrations, } from '@/migration';
+import { Migrations } from '@/migration';
 import { RufiConfig, Services } from '@/cli-core';
 import { Log } from './utils';
 import { BaseContext } from 'clipanion';

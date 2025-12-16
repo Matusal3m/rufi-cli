@@ -39,14 +39,14 @@ export class MakeMigration extends Command<RufiToolsContext> {
             process.cwd(),
             'services',
             this.service,
-            'migrations'
+            'migrations',
         );
 
         if (!fs.existsSync(migrationsPath)) {
             throw new UsageError(
                 `Could not found path ${color.yellow(
-                    migrationsPath.replace(process.cwd() + '/', '')
-                )}`
+                    migrationsPath.replace(process.cwd() + '/', ''),
+                )}`,
             );
         }
 
@@ -94,10 +94,10 @@ export class MakeMigration extends Command<RufiToolsContext> {
         if (!(this.migrationType in templates)) {
             throw new UsageError(
                 `Unknown migration ${color.red(
-                    this.migrationType
+                    this.migrationType,
                 )}.\nAvailable types: ${color.blue('create')}, ${color.blue(
-                    'drop'
-                )} and ${color.blue('alter')}`
+                    'drop',
+                )} and ${color.blue('alter')}`,
             );
         }
 

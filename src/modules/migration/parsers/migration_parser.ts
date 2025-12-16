@@ -5,7 +5,7 @@ import * as fs from 'fs';
 export abstract class MigrationParser {
     constructor(
         protected readonly serviceName: string,
-        protected readonly serviceConfig: ServiceConfig
+        protected readonly serviceConfig: ServiceConfig,
     ) {}
 
     abstract execute(destination: string): Promise<string[]>;
@@ -13,7 +13,7 @@ export abstract class MigrationParser {
     ensureMigrationDir(migrationDir: string) {
         if (!fs.existsSync(migrationDir)) {
             throw new Error(
-                `Migration dir ${color.bold(migrationDir)} not found`
+                `Migration dir ${color.bold(migrationDir)} not found`,
             );
         }
     }

@@ -17,7 +17,7 @@ export class Reset extends Command<RufiToolsContext> {
 
         if (process.env['ENV'] !== 'development') {
             console.warn(
-                'Reset command can only be run in development environment'
+                'Reset command can only be run in development environment',
             );
             Logger;
         }

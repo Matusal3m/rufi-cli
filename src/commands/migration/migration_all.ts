@@ -16,14 +16,14 @@ export class MigrationAll extends Command<RufiToolsContext> {
         Logger.info('Checking for core service...');
 
         const coreIndex = services.findIndex(
-            (service: any) => service === coreName
+            (service: any) => service === coreName,
         );
         if (coreIndex === -1) {
             Logger.error(
-                `Core service '${coreName}' not found among local services.`
+                `Core service '${coreName}' not found among local services.`,
             );
             throw new Error(
-                `Migration aborted: missing core service '${coreName}'.`
+                `Migration aborted: missing core service '${coreName}'.`,
             );
         }
 
@@ -31,8 +31,8 @@ export class MigrationAll extends Command<RufiToolsContext> {
 
         Logger.info(
             `Running migrations for ${color.bold(
-                'core'
-            )} service: ${coreService}`
+                'core',
+            )} service: ${coreService}`,
         );
 
         try {
@@ -60,8 +60,8 @@ export class MigrationAll extends Command<RufiToolsContext> {
             } catch (error) {
                 Logger.warn(
                     `Could not run migration for service ${color.bold(
-                        service
-                    )}.`
+                        service,
+                    )}.`,
                 );
             }
         }

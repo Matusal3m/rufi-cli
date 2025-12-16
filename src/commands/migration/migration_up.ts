@@ -33,7 +33,7 @@ export class MigrationUp extends Command<RufiToolsContext> {
         Logger.section(`Starting migrations for service: ${this.service}`);
 
         const defaultMigrationDir = await Migrations.defaultMigrationDir(
-            this.service
+            this.service,
         );
 
         const parser = await Migrations.getParser(this.service);
@@ -49,7 +49,7 @@ export class MigrationUp extends Command<RufiToolsContext> {
         const appliedCount = await Migrations.applyMigrations(
             migrations,
             this.service,
-            defaultMigrationDir
+            defaultMigrationDir,
         );
 
         if (appliedCount > 0) {

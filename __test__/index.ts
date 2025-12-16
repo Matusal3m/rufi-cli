@@ -24,8 +24,8 @@ import {
         })
         .testBlock('Services Process', register => {
             register('test a log', () => {
-                console.log({ data: 'from test block' })
-            })
+                console.log({ data: 'from test block' });
+            });
         })
         .test('Test help function', ['--help'])
         .test('Test Rufi Start', ['start'])

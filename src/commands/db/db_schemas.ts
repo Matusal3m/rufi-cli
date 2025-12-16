@@ -42,7 +42,7 @@ export class DbSchemas extends Command<RufiToolsContext> {
                 Logger.divider();
             } catch (err: any) {
                 Logger.error(
-                    `Error fetching tables for service ${service}: ${err.message}`
+                    `Error fetching tables for service ${service}: ${err.message}`,
                 );
             }
         }
@@ -56,7 +56,7 @@ export class DbSchemas extends Command<RufiToolsContext> {
 
         Logger.section(
             `Schema ${color.green(schema)}` +
-                (isCore ? color.gray(` (core)`) : '')
+                (isCore ? color.gray(` (core)`) : ''),
         );
 
         if (tables.length === 0) {
